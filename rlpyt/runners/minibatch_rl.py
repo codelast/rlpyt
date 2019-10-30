@@ -226,7 +226,7 @@ class MinibatchRlEval(MinibatchRlBase):
     _eval = True
 
     def train(self):
-        n_itr = self.startup()
+        n_itr = self.startup()  # 调用startup()会导致调用父类的__init__()方法，从而会把外面的algo，agent，sampler传进去
         with logger.prefix(f"itr #0 "):
             eval_traj_infos, eval_time = self.evaluate_agent(0)
             self.log_diagnostics(0, eval_traj_infos, eval_time)
