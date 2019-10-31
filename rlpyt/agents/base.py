@@ -1,21 +1,21 @@
 import multiprocessing as mp
+
 import torch
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.nn.parallel import DistributedDataParallelCPU as DDPC
 
-from rlpyt.utils.quick_args import save__init__args
-from rlpyt.utils.collections import namedarraytuple
-from rlpyt.utils.synchronize import RWLock
-from rlpyt.utils.logging import logger
 from rlpyt.models.utils import strip_ddp_state_dict
+from rlpyt.utils.collections import namedarraytuple
+from rlpyt.utils.logging import logger
+from rlpyt.utils.quick_args import save__init__args
+from rlpyt.utils.synchronize import RWLock
 
 AgentInputs = namedarraytuple("AgentInputs",
-    ["observation", "prev_action", "prev_reward"])
+                              ["observation", "prev_action", "prev_reward"])
 AgentStep = namedarraytuple("AgentStep", ["action", "agent_info"])
 
 
 class BaseAgent:
-
     recurrent = False
     alternating = False
 
@@ -24,7 +24,7 @@ class BaseAgent:
         self.model = None  # type: torch.nn.Module
         self.shared_model = None
         self.distribution = None
-        self.device = torch.device("cpu")
+        self.device = torch.device("cpu")  # 指定在CPU上运行
         self._mode = None
         if self.model_kwargs is None:
             self.model_kwargs = dict()
@@ -34,7 +34,10 @@ class BaseAgent:
         self._recv_count = 0
 
     def __call__(self, observation, prev_action, prev_reward):
-        """Returns values from model forward pass on training data."""
+        """
+        Returns values from model forward pass on training data.
+        抛出NotImplementedError使得子类要实现这个方法。
+        """
         raise NotImplementedError
 
     def initialize(self, env_spaces, share_memory=False, **kwargs):
@@ -42,7 +45,7 @@ class BaseAgent:
         for action selection, so it is the only one shared with workers."""
         self.env_model_kwargs = self.make_env_to_model_kwargs(env_spaces)
         self.model = self.ModelCls(**self.env_model_kwargs,
-            **self.model_kwargs)
+                                   **self.model_kwargs)
         if share_memory:
             self.model.share_memory()
             self.shared_model = self.model
@@ -60,7 +63,7 @@ class BaseAgent:
             return
         if self.shared_model is not None:
             self.model = self.ModelCls(**self.env_model_kwargs,
-                **self.model_kwargs)
+                                       **self.model_kwargs)
             self.model.load_state_dict(self.shared_model.state_dict())
         self.device = torch.device("cuda", index=cuda_idx)
         self.model.to(self.device)
@@ -74,9 +77,9 @@ class BaseAgent:
             logger.log("Initialized DistributedDataParallelCPU agent model.")
         else:
             self.model = DDP(self.model,
-                device_ids=[self.device.index], output_device=self.device.index)
+                             device_ids=[self.device.index], output_device=self.device.index)
             logger.log("Initialized DistributedDataParallel agent model on "
-                f"device {self.device}.")
+                       f"device {self.device}.")
 
     def async_cpu(self, share_memory=True):
         """Shared model among sampler processes separate from shared model
@@ -85,7 +88,7 @@ class BaseAgent:
             return
         assert self.shared_model is not None
         self.model = self.ModelCls(**self.env_model_kwargs,
-            **self.model_kwargs)
+                                   **self.model_kwargs)
         # TODO: might need strip_ddp_state_dict.
         self.model.load_state_dict(self.shared_model.state_dict())
         if share_memory:  # Not needed in async_serial.
@@ -159,7 +162,7 @@ class BaseAgent:
 
 
 AgentInputsRnn = namedarraytuple("AgentInputsRnn",  # Training only.
-    ["observation", "prev_action", "prev_reward", "init_rnn_state"])
+                                 ["observation", "prev_action", "prev_reward", "init_rnn_state"])
 
 
 class RecurrentAgentMixin:

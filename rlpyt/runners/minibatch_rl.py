@@ -1,54 +1,58 @@
-
-import psutil
-import time
-import torch
 import math
+import time
 from collections import deque
 
+import psutil
+import torch
+
 from rlpyt.runners.base import BaseRunner
-from rlpyt.utils.quick_args import save__init__args
-from rlpyt.utils.seed import set_seed, make_seed
 from rlpyt.utils.logging import logger
 from rlpyt.utils.prog_bar import ProgBarCounter
+from rlpyt.utils.quick_args import save__init__args
+from rlpyt.utils.seed import set_seed, make_seed
 
 
 class MinibatchRlBase(BaseRunner):
-
     _eval = False
 
     def __init__(
-            self,
-            algo,
-            agent,
-            sampler,
-            n_steps,
-            seed=None,
-            affinity=None,
-            log_interval_steps=1e5,
-            ):
+        self,
+        algo,
+        agent,
+        sampler,
+        n_steps,
+        seed=None,
+        affinity=None,
+        log_interval_steps=1e5,
+    ):
         n_steps = int(n_steps)
         log_interval_steps = int(log_interval_steps)
-        affinity = dict() if affinity is None else affinity
+        affinity = dict() if affinity is None else affinity  # CPU亲和性定义
+        # 非常tricky的做法：把局部变量保存到实例的属性中。在后面的大量代码中，都会看到很多貌似没有定义过的self.xxx变量，它们就是在这里被定义的
         save__init__args(locals())
 
     def startup(self):
         p = psutil.Process()
+
+        # 设置CPU亲和性，不支持MacOS
         try:
-            if (self.affinity.get("master_cpus", None) is not None and
-                    self.affinity.get("set_affinity", True)):
+            if self.affinity.get("master_cpus", None) is not None and self.affinity.get("set_affinity", True):
                 p.cpu_affinity(self.affinity["master_cpus"])
             cpu_affin = p.cpu_affinity()
         except AttributeError:
             cpu_affin = "UNAVAILABLE MacOS"
-        logger.log(f"Runner {getattr(self, 'rank', '')} master CPU affinity: "
-            f"{cpu_affin}.")
+        logger.log(f"Runner {getattr(self, 'rank', '')} master CPU affinity: {cpu_affin}.")
+
+        # 设置线程数
         if self.affinity.get("master_torch_threads", None) is not None:
-            torch.set_num_threads(self.affinity["master_torch_threads"])
-        logger.log(f"Runner {getattr(self, 'rank', '')} master Torch threads: "
-            f"{torch.get_num_threads()}.")
+            torch.set_num_threads(self.affinity["master_torch_threads"])  # 设置用于并行化CPU操作的OpenMP线程数
+        logger.log(f"Runner {getattr(self, 'rank', '')} master Torch threads: {torch.get_num_threads()}.")
+
+        # 设置随机数种子
         if self.seed is None:
             self.seed = make_seed()
         set_seed(self.seed)
+
         self.rank = rank = getattr(self, "rank", 0)
         self.world_size = world_size = getattr(self, "world_size", 1)
         examples = self.sampler.initialize(
@@ -62,9 +66,11 @@ class MinibatchRlBase(BaseRunner):
         )
         self.itr_batch_size = self.sampler.batch_spec.size * world_size
         n_itr = self.get_n_itr()
-        self.agent.to_device(self.affinity.get("cuda_idx", None))
+        self.agent.to_device(self.affinity.get("cuda_idx", None))  # self.affinity 是一个 dict
         if world_size > 1:
             self.agent.data_parallel()
+
+        # 初始化算法属性
         self.algo.initialize(
             agent=self.agent,
             n_itr=n_itr,
@@ -74,6 +80,8 @@ class MinibatchRlBase(BaseRunner):
             world_size=world_size,
             rank=rank,
         )
+
+        # 初始化日志参数
         self.initialize_logging()
         return n_itr
 
@@ -81,8 +89,7 @@ class MinibatchRlBase(BaseRunner):
         return dict(discount=getattr(self.algo, "discount", 1))
 
     def get_n_itr(self):
-        log_interval_itrs = max(self.log_interval_steps //
-            self.itr_batch_size, 1)
+        log_interval_itrs = max(self.log_interval_steps // self.itr_batch_size, 1)  # // 即先做除法(/)，然后向下取整(floor)
         n_itr = math.ceil(self.n_steps / self.log_interval_steps) * log_interval_itrs
         self.log_interval_itrs = log_interval_itrs
         self.n_itr = n_itr
@@ -131,20 +138,20 @@ class MinibatchRlBase(BaseRunner):
         train_time_elapsed = new_time - self._last_time - eval_time
         new_updates = self.algo.update_counter - self._last_update_counter
         new_samples = (self.sampler.batch_size * self.world_size *
-            self.log_interval_itrs)
+                       self.log_interval_itrs)
         updates_per_second = (float('nan') if itr == 0 else
-            new_updates / train_time_elapsed)
+                              new_updates / train_time_elapsed)
         samples_per_second = (float('nan') if itr == 0 else
-            new_samples / train_time_elapsed)
+                              new_samples / train_time_elapsed)
         replay_ratio = (new_updates * self.algo.batch_size * self.world_size /
-            new_samples)
+                        new_samples)
         cum_replay_ratio = (self.algo.batch_size * self.algo.update_counter /
-            ((itr + 1) * self.sampler.batch_size))  # world_size cancels.
+                            ((itr + 1) * self.sampler.batch_size))  # world_size cancels.
         cum_steps = (itr + 1) * self.sampler.batch_size * self.world_size
 
         if self._eval:
             logger.record_tabular('CumTrainTime',
-                self._cum_time - self._cum_eval_time)  # Already added new eval_time.
+                                  self._cum_time - self._cum_eval_time)  # Already added new eval_time.
         logger.record_tabular('Iteration', itr)
         logger.record_tabular('CumTime (s)', self._cum_time)
         logger.record_tabular('CumSteps', cum_steps)
@@ -170,7 +177,7 @@ class MinibatchRlBase(BaseRunner):
             for k in traj_infos[0]:
                 if not k.startswith("_"):
                     logger.record_tabular_misc_stat(k,
-                        [info[k] for info in traj_infos])
+                                                    [info[k] for info in traj_infos])
 
         if self._opt_infos:
             for k, v in self._opt_infos.items():
@@ -214,7 +221,7 @@ class MinibatchRl(MinibatchRlBase):
     def log_diagnostics(self, itr):
         logger.record_tabular('NewCompletedTrajs', self._new_completed_trajs)
         logger.record_tabular('StepsInTrajWindow',
-            sum(info["Length"] for info in self._traj_infos))
+                              sum(info["Length"] for info in self._traj_infos))
         super().log_diagnostics(itr)
         self._new_completed_trajs = 0
 

@@ -1,6 +1,12 @@
+"""
+该类的作用：生成随机数种子，以及设置随机数种子。
+说明：在神经网络中，参数默认是进行随机初始化的。不同的初始化参数往往会导致不同的结果，当得到比较好的结果时我们通常希望这个结果是可以复现的，在PyTorch
+中，通过设置随机数种子也可以达到这个目的。随机数种子seed确定时，模型的训练结果将始终保持一致。
+"""
+
+import time
 
 import numpy as np
-import time
 
 from rlpyt.utils.logging.console import colorize
 
@@ -15,8 +21,8 @@ def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     import torch
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
+    torch.manual_seed(seed)  # 为CPU设置随机种子
+    torch.cuda.manual_seed(seed)  # 为[当前]GPU设置随机种子(不是所有GPU)
     print(colorize(f"using seed {seed}", "green"))
 
 

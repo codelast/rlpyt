@@ -39,8 +39,8 @@ def build_and_train(game="pong", run_ID=0, cuda_idx=None):
         algo=algo,
         agent=agent,
         sampler=sampler,
-        n_steps=50e6,
-        log_interval_steps=1e3,
+        n_steps=50e6,  # 总共多少步
+        log_interval_steps=1e3,  # 每多少步记录一次日志
         affinity=dict(cuda_idx=cuda_idx),
     )
     config = dict(game=game)
