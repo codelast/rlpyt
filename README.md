@@ -1,3 +1,9 @@
+This repo tends to be a copy of rlpyt(https://github.com/astooke/rlpyt), with lots of comments added & code formatted according to PEP8. I have a penchant for code cleanliness and cannot bear PEP8-violated habit, sorry.
+The original rlpyt codes are not easy to understand as there are many tricks using & the code format are very chaotic(conparing to PEP8), and the original rlpyt authors must be Python experts so they may not accept any code reformatting pull requests, so I decided to fix these problems by my own.
+
+本代码库试图在拷贝 rlpyt(https://github.com/astooke/rlpyt) 原代码的基础上，对其添加大量注释，以及根据Python PEP8编码规范对其进行格式化。我有代码洁癖，忍不了违反PEP8编码规范的代码。
+由于使用了很多编程技巧，以及代码格式的混乱(参考PEP8)，原始的 rlpyt 代码不好理解，并且由于 rlpyt 的原作者是Python高手，所以他们应该不会接受任何试图规范代码格式的pull request，所以我就不指望原repo了，我自己来fix这些问题。
+
 <img align="right" width="205" height="109" src="/images/bair_logo.png">
 
 # rlpyt
