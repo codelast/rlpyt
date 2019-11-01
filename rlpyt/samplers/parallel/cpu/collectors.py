@@ -1,15 +1,11 @@
-
 import numpy as np
 
-from rlpyt.samplers.collectors import (DecorrelatingStartCollector,
-    BaseEvalCollector)
 from rlpyt.agents.base import AgentInputs
-from rlpyt.utils.buffer import (torchify_buffer, numpify_buffer, buffer_from_example,
-    buffer_method)
+from rlpyt.samplers.collectors import (DecorrelatingStartCollector, BaseEvalCollector)
+from rlpyt.utils.buffer import (torchify_buffer, numpify_buffer, buffer_from_example, buffer_method)
 
 
 class CpuResetCollector(DecorrelatingStartCollector):
-
     mid_batch_reset = True
 
     def collect_batch(self, agent_inputs, traj_infos, itr):
@@ -22,7 +18,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
         agent_buf.prev_action[0] = action  # Leading prev_action.
         env_buf.prev_reward[0] = reward
         self.agent.sample_mode(itr)
-        for t in range(self.batch_T):
+        for t in range(self.batch_T):  # batch_T：每个sampler迭代有多少个时间步长
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
             act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)
@@ -31,7 +27,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                 # Environment inputs and outputs are numpy arrays.
                 o, r, d, env_info = env.step(action[b])
                 traj_infos[b].step(observation[b], action[b], r, d, agent_info[b],
-                    env_info)
+                                   env_info)
                 if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()
@@ -56,7 +52,6 @@ class CpuResetCollector(DecorrelatingStartCollector):
 
 
 class CpuWaitResetCollector(DecorrelatingStartCollector):
-
     mid_batch_reset = False
 
     def __init__(self, *args, **kwargs):
@@ -95,7 +90,7 @@ class CpuWaitResetCollector(DecorrelatingStartCollector):
                 # Environment inputs and outputs are numpy arrays.
                 o, r, d, env_info = env.step(action[b])
                 traj_infos[b].step(observation[b], action[b], r, d, agent_info[b],
-                    env_info)
+                                   env_info)
                 if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()
@@ -139,7 +134,7 @@ class CpuEvalCollector(BaseEvalCollector):
         for b, o in enumerate(observations):
             observation[b] = o
         action = buffer_from_example(self.envs[0].action_space.null_value(),
-            len(self.envs))
+                                     len(self.envs))
         reward = np.zeros(len(self.envs), dtype="float32")
         obs_pyt, act_pyt, rew_pyt = torchify_buffer((observation, action, reward))
         self.agent.reset()
@@ -150,7 +145,7 @@ class CpuEvalCollector(BaseEvalCollector):
             for b, env in enumerate(self.envs):
                 o, r, d, env_info = env.step(action[b])
                 traj_infos[b].step(observation[b], action[b], r, d,
-                    agent_info[b], env_info)
+                                   agent_info[b], env_info)
                 if getattr(env_info, "traj_done", d):
                     self.traj_infos_queue.put(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()

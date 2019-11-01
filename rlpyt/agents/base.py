@@ -10,8 +10,7 @@ from rlpyt.utils.logging import logger
 from rlpyt.utils.quick_args import save__init__args
 from rlpyt.utils.synchronize import RWLock
 
-AgentInputs = namedarraytuple("AgentInputs",
-                              ["observation", "prev_action", "prev_reward"])
+AgentInputs = namedarraytuple("AgentInputs", ["observation", "prev_action", "prev_reward"])
 AgentStep = namedarraytuple("AgentStep", ["action", "agent_info"])
 
 

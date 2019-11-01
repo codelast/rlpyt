@@ -1,7 +1,5 @@
-
 import sys
 from collections import namedtuple
-
 
 RESERVED_NAMES = ("get", "items")
 
@@ -9,11 +7,12 @@ RESERVED_NAMES = ("get", "items")
 def tuple_itemgetter(i):
     def _tuple_itemgetter(obj):
         return tuple.__getitem__(obj, i)
+
     return _tuple_itemgetter
 
 
 def namedarraytuple(typename, field_names, return_namedtuple_cls=False,
-        classname_suffix=False):
+                    classname_suffix=False):
     """
     Returns a new subclass of a namedtuple which exposes indexing / slicing
     reads and writes applied to all contained objects, which must share
@@ -66,10 +65,10 @@ def namedarraytuple(typename, field_names, return_namedtuple_cls=False,
                     _ = s[loc]
                 except IndexError:
                     raise Exception(f"Occured in {self.__class__} at field "
-                        f"'{self._fields[j]}'.") from e
+                                    f"'{self._fields[j]}'.") from e
 
     __getitem__.__doc__ = (f"Return a new {typename} instance containing "
-        "the selected index or slice from each field.")
+                           "the selected index or slice from each field.")
 
     def __setitem__(self, loc, value):
         """
@@ -88,7 +87,7 @@ def namedarraytuple(typename, field_names, return_namedtuple_cls=False,
                     s[loc] = v
         except (ValueError, IndexError, TypeError) as e:
             raise Exception(f"Occured in {self.__class__} at field "
-                f"'{self._fields[j]}'.") from e
+                            f"'{self._fields[j]}'.") from e
 
     def __contains__(self, key):
         "Checks presence of field name (unlike tuple; like dict)."
@@ -142,7 +141,7 @@ def is_namedtuple_class(obj):
     if obj.mro()[1] is not tuple:
         return False
     if not all(hasattr(obj, attr)
-            for attr in ["_fields", "_asdict", "_make", "_replace"]):
+               for attr in ["_fields", "_asdict", "_make", "_replace"]):
         return False
     return True
 
@@ -180,17 +179,17 @@ def namedarraytuple_like(namedtuple_or_class, classname_suffix=False):
     ntc = namedtuple_or_class
     if is_namedtuple(ntc):
         return namedarraytuple(type(ntc).__name__, ntc._fields,
-            classname_suffix=classname_suffix)
+                               classname_suffix=classname_suffix)
     elif is_namedtuple_class(ntc):
         return namedarraytuple(ntc.__name__, ntc._fields,
-            classname_suffix=classname_suffix)
+                               classname_suffix=classname_suffix)
     elif is_namedarraytuple(ntc):
         return type(ntc)
     elif is_namedarraytuple_class(ntc):
         return ntc
     else:
         raise TypeError("Input must be namedtuple or namedarraytuple instance"
-            f" or class, got {type(ntc)}.")
+                        f" or class, got {type(ntc)}.")
 
 
 class AttrDict(dict):
@@ -211,5 +210,4 @@ class AttrDict(dict):
         Provides a "deep" copy of all unbroken chains of types AttrDict, but
         shallow copies otherwise, (e.g. numpy arrays are NOT copied).
         """
-        return type(self)(**{k: v.copy() if isinstance(v, AttrDict) else v
-            for k, v in self.items()})
+        return type(self)(**{k: v.copy() if isinstance(v, AttrDict) else v for k, v in self.items()})
