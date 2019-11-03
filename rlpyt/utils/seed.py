@@ -30,7 +30,7 @@ def get_seed():
     return seed_
 
 
-def make_seed():
+def make_seed() -> float:
     """
     Returns a random number between [0, 10000], using timing jitter.
 
@@ -38,18 +38,18 @@ def make_seed():
     simultaneous processes...some simpler attempts did not achieve that, but
     there's probably a better way.
     """
-    d = 10000
-    t = time.time()
+    d: int = 10000
+    t: float = time.time()
     sub1 = int(t * d) % d
     sub2 = int(t * d ** 2) % d
-    s = 1e-3
-    s_inv = 1. / s
+    s: float = 1e-3
+    s_inv: float = 1. / s
     time.sleep(s * sub2 / d)
-    t2 = time.time()
+    t2: float = time.time()
     t2 = t2 - int(t2)
     t2 = int(t2 * d * s_inv) % d
     time.sleep(s * sub1 / d)
-    t3 = time.time()
+    t3: float = time.time()
     t3 = t3 - int(t3)
     t3 = int(t3 * d * s_inv * 10) % d
     return (t3 - t2) % d

@@ -260,6 +260,9 @@ _tabular_headers = dict()  # keys are file_names and values are the keys of the 
 
 
 def dump_tabular(*args, **kwargs):
+    """
+    以表格的形式写日志文件。
+    """
     if not _disabled:  # and not _tabular_disabled:
         wh = kwargs.pop("write_header", None)
         if len(_tabular) > 0:

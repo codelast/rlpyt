@@ -1,49 +1,46 @@
-
-import torch
 from collections import namedtuple
 
-from rlpyt.algos.base import RlAlgorithm
-from rlpyt.utils.quick_args import save__init__args
-from rlpyt.utils.logging import logger
-from rlpyt.replays.non_sequence.uniform import (UniformReplayBuffer,
-    AsyncUniformReplayBuffer)
-from rlpyt.replays.non_sequence.time_limit import (TlUniformReplayBuffer,
-    AsyncTlUniformReplayBuffer)
-from rlpyt.utils.collections import namedarraytuple
-from rlpyt.utils.tensor import valid_mean
-from rlpyt.algos.utils import valid_from_done
+import torch
 
-OptInfo = namedtuple("OptInfo",
-    ["muLoss", "qLoss", "muGradNorm", "qGradNorm"])
-SamplesToBuffer = namedarraytuple("SamplesToBuffer",
-    ["observation", "action", "reward", "done", "timeout"])
+from rlpyt.algos.base import RlAlgorithm
+from rlpyt.algos.utils import valid_from_done
+from rlpyt.replays.non_sequence.time_limit import (TlUniformReplayBuffer,
+                                                   AsyncTlUniformReplayBuffer)
+from rlpyt.replays.non_sequence.uniform import (UniformReplayBuffer,
+                                                AsyncUniformReplayBuffer)
+from rlpyt.utils.collections import namedarraytuple
+from rlpyt.utils.logging import logger
+from rlpyt.utils.quick_args import save__init__args
+from rlpyt.utils.tensor import valid_mean
+
+OptInfo = namedtuple("OptInfo", ["muLoss", "qLoss", "muGradNorm", "qGradNorm"])
+SamplesToBuffer = namedarraytuple("SamplesToBuffer", ["observation", "action", "reward", "done", "timeout"])
 
 
 class DDPG(RlAlgorithm):
-
     opt_info_fields = tuple(f for f in OptInfo._fields)  # copy
 
     def __init__(
-            self,
-            discount=0.99,
-            batch_size=64,
-            min_steps_learn=int(1e4),
-            replay_size=int(1e6),
-            replay_ratio=64,  # data_consumption / data_generation
-            target_update_tau=0.01,
-            target_update_interval=1,
-            policy_update_interval=1,
-            learning_rate=1e-4,
-            q_learning_rate=1e-3,
-            OptimCls=torch.optim.Adam,
-            optim_kwargs=None,
-            initial_optim_state_dict=None,
-            clip_grad_norm=1e8,
-            q_target_clip=1e6,
-            n_step_return=1,
-            updates_per_sync=1,  # For async mode only.
-            bootstrap_timelimit=True,
-            ):
+        self,
+        discount=0.99,
+        batch_size=64,
+        min_steps_learn=int(1e4),
+        replay_size=int(1e6),
+        replay_ratio=64,  # data_consumption / data_generation
+        target_update_tau=0.01,
+        target_update_interval=1,
+        policy_update_interval=1,
+        learning_rate=1e-4,
+        q_learning_rate=1e-3,
+        OptimCls=torch.optim.Adam,
+        optim_kwargs=None,
+        initial_optim_state_dict=None,
+        clip_grad_norm=1e8,
+        q_target_clip=1e6,
+        n_step_return=1,
+        updates_per_sync=1,  # For async mode only.
+        bootstrap_timelimit=True,
+    ):
         if optim_kwargs is None:
             optim_kwargs = dict()
         self._batch_size = batch_size
@@ -51,25 +48,25 @@ class DDPG(RlAlgorithm):
         save__init__args(locals())
 
     def initialize(self, agent, n_itr, batch_spec, mid_batch_reset, examples,
-            world_size=1, rank=0):
+                   world_size=1, rank=0):
         """Used in basic or synchronous multi-GPU runners, not async."""
         self.agent = agent
         self.n_itr = n_itr
         self.mid_batch_reset = mid_batch_reset
         self.sampler_bs = sampler_bs = batch_spec.size
         self.updates_per_optimize = max(1, round(self.replay_ratio * sampler_bs /
-            self.batch_size))
+                                                 self.batch_size))
         logger.log(f"From sampler batch size {sampler_bs}, training "
-            f"batch size {self.batch_size}, and replay ratio "
-            f"{self.replay_ratio}, computed {self.updates_per_optimize} "
-            f"updates per iteration.")
+                   f"batch size {self.batch_size}, and replay ratio "
+                   f"{self.replay_ratio}, computed {self.updates_per_optimize} "
+                   f"updates per iteration.")
         self.min_itr_learn = int(self.min_steps_learn // sampler_bs)
         # Agent give min itr learn.?
         self.initialize_replay_buffer(examples, batch_spec)
         self.optim_initialize(rank)
 
     def async_initialize(self, agent, sampler_n_itr, batch_spec, mid_batch_reset,
-            examples, world_size=1):
+                         examples, world_size=1):
         """Used in async runner only."""
         self.agent = agent
         self.n_itr = sampler_n_itr
@@ -84,9 +81,9 @@ class DDPG(RlAlgorithm):
         """Called by async runner."""
         self.rank = rank
         self.mu_optimizer = self.OptimCls(self.agent.mu_parameters(),
-            lr=self.learning_rate, **self.optim_kwargs)
+                                          lr=self.learning_rate, **self.optim_kwargs)
         self.q_optimizer = self.OptimCls(self.agent.q_parameters(),
-            lr=self.q_learning_rate, **self.optim_kwargs)
+                                         lr=self.q_learning_rate, **self.optim_kwargs)
         if self.initial_optim_state_dict is not None:
             self.q_optimizer.load_state_dict(self.initial_optim_state_dict["q"])
             self.mu_optimizer.load_state_dict(self.initial_optim_state_dict["mu"])
@@ -179,7 +176,7 @@ class DDPG(RlAlgorithm):
 
     def optim_state_dict(self):
         return dict(q=self.q_optimizer.state_dict(),
-            mu=self.mu_optimizer.state_dict)
+                    mu=self.mu_optimizer.state_dict)
 
     def load_optim_state_dict(self, state_dict):
         self.q_optimizer.load_state_dict(state_dict["q"])

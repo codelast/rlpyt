@@ -1,27 +1,28 @@
-
 # import multiprocessing as mp
 # import numpy as np
 # import ctypes
 import torch
 
-from rlpyt.utils.quick_args import save__init__args
 from rlpyt.utils.logging import logger
+from rlpyt.utils.quick_args import save__init__args
+
+
 # from rlpyt.utils.buffer import np_mp_array
 
 
 class EpsilonGreedyAgentMixin:
 
     def __init__(
-            self,
-            eps_init=1,
-            eps_final=0.01,
-            eps_final_min=None,  # Give < eps_final for vector epsilon.
-            eps_itr_min=50,  # Algo may overwrite.
-            eps_itr_max=1000,
-            eps_eval=0.001,
-            *args,
-            **kwargs
-            ):
+        self,
+        eps_init=1,
+        eps_final=0.01,
+        eps_final_min=None,  # Give < eps_final for vector epsilon.
+        eps_itr_min=50,  # Algo may overwrite.
+        eps_itr_max=1000,
+        eps_eval=0.001,
+        *args,
+        **kwargs
+    ):
         super().__init__(*args, **kwargs)
         save__init__args(locals())
         self._eps_final_scalar = eps_final  # In case multiple vec_eps calls.
@@ -32,8 +33,7 @@ class EpsilonGreedyAgentMixin:
             self.make_vec_eps(global_B, env_ranks)
 
     def make_vec_eps(self, global_B, env_ranks):
-        if (self.eps_final_min is not None and
-                self.eps_final_min != self._eps_final_scalar):  # vector epsilon.
+        if self.eps_final_min is not None and self.eps_final_min != self._eps_final_scalar:  # vector epsilon.
             if self.alternating:  # In FF case, sampler sets agent.alternating.
                 assert global_B % 2 == 0
                 global_B = global_B // 2  # Env pairs will share epsilon.
@@ -49,7 +49,7 @@ class EpsilonGreedyAgentMixin:
     def set_epsilon_itr_min_max(self, eps_itr_min, eps_itr_max):
         # Beginning and end of linear ramp down of epsilon.
         logger.log(f"Agent setting min/max epsilon itrs: {eps_itr_min}, "
-            f"{eps_itr_max}")
+                   f"{eps_itr_max}")
         self.eps_itr_min = eps_itr_min
         self.eps_itr_max = eps_itr_max
 
@@ -83,7 +83,7 @@ class EpsilonGreedyAgentMixin:
         super().sample_mode(itr)
         if itr <= self.eps_itr_max:
             prog = min(1, max(0, itr - self.eps_itr_min) /
-                (self.eps_itr_max - self.eps_itr_min))
+                       (self.eps_itr_max - self.eps_itr_min))
             self.eps_sample = prog * self.eps_final + (1 - prog) * self.eps_init
             if itr % (self.eps_itr_max // 10) == 0 or itr == self.eps_itr_max:
                 logger.log(f"Agent at itr {itr}, sample eps {self.eps_sample}")
@@ -99,7 +99,7 @@ class EpsilonGreedyAgentMixin:
     def eval_mode(self, itr):
         super().eval_mode(itr)
         logger.log(f"Agent at itr {itr}, eval eps "
-            f"{self.eps_eval if itr > 0 else 1.}")
+                   f"{self.eps_eval if itr > 0 else 1.}")
         self.distribution.set_epsilon(self.eps_eval if itr > 0 else 1.)
 
     # def eval_mode(self, itr):
