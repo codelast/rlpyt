@@ -66,9 +66,9 @@ class ParallelSamplerBase(BaseSampler):
         target = sampling_process if worker_process is None else worker_process
         self.workers = [mp.Process(target=target,
             kwargs=dict(common_kwargs=common_kwargs, worker_kwargs=w_kwargs))
-            for w_kwargs in workers_kwargs]
+            for w_kwargs in workers_kwargs]  # 创建一批子进程
         for w in self.workers:
-            w.start()
+            w.start()  # 启动进程
 
         self.ctrl.barrier_out.wait()  # Wait for workers ready (e.g. decorrelate).
         return examples  # e.g. In case useful to build replay buffer.

@@ -10,8 +10,10 @@ class BaseCollector:
     """
     Class that steps through environments, possibly in worker process.
     在environment中步进(step)的类，有可能会在worker进程中运行(意思是也有可能会在主进程中运行)。这里的collector其实就是采样(或者说收集数据)
-    用的，但在 rlpyt 里面不叫Sampler，而是叫Collector。在 rlpyt 中，Sampler是另一种概念，相比之下Sampler只会在主进程中运行。要弄清楚这个
+    用的，但在 rlpyt 里面不叫Sampler，而是叫Collector。在 rlpyt 中，Sampler是另一种概念，相比之下Sampler只会在主进程中运行。要搞清楚这个
     容易混淆的概念。
+    这个类是 DecorrelatingStartCollector 类的基类，而 DecorrelatingStartCollector 又是很多其他Collector类的基类，因此这个类也就是
+    很多Collector类的基类。
     """
 
     def __init__(
@@ -52,7 +54,10 @@ class BaseCollector:
 
 
 class BaseEvalCollector:
-    """Does not record intermediate data."""
+    """
+    Does not record intermediate data.
+    和 evaluation 相关的Collector类的基类。
+    """
 
     def __init__(
         self,
@@ -74,15 +79,22 @@ class BaseEvalCollector:
 
 class DecorrelatingStartCollector(BaseCollector):
     """
-    从名字上看，该类是一个包含[去相关性]特性的collector。在强化学习中，数据之间的相关性(correlation)有时会导致训练出来的效果很差，因此有很多
-    研究都对数据做了[去相关性](decorrelation)的工作。
+    该类是一个包含[去相关性]特性的collector。在强化学习中，数据之间的相关性(correlation)有时会导致训练出来的效果很差，因此有很多工作都会对
+    数据做[去相关性](decorrelation)的操作。
+    这个类是其他很多和 evaluation 无关的 Collector class的基类。
     """
 
     def start_envs(self, max_decorrelation_steps=0):
-        """Calls reset() on every env and returns agent_inputs buffer."""
+        """
+        Calls reset() on every env and returns agent_inputs buffer.
+
+        :max_decorrelation_steps: 最大[去相关性]的步数。
+        :return 一个 namedarraytuple，包含3个元素(observation，action，reward)，每个元素又分别是一个list；以及trajectory的一些统计
+        信息。
+        """
         traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
         observations = list()
-        for env in self.envs:  # self.envs是一个environment的list，它是在SerialSampler中实例化的
+        for env in self.envs:  # self.envs是一个environment的list，它是在sampler类(例如SerialSampler)里面实例化的
             observations.append(env.reset())
         observation = buffer_from_example(observations[0], len(self.envs))
         for b, obs in enumerate(observations):
@@ -92,23 +104,34 @@ class DecorrelatingStartCollector(BaseCollector):
         if self.rank == 0:
             logger.log("Sampler decorrelating envs, max steps: "
                        f"{max_decorrelation_steps}")
+
+        """
+        在所有environment内，依次采样一批数据。按我的理解，这里的decorrelation逻辑是这样的：首先指定一个步数(例如100)，然后对每一个
+        environment都走100步来采样，如果不到100步environment就走到头了也没关系，reset之后从头继续走，反正一共走够100步。所有environment
+        里的数据混在一起返回，这样做确实起到了decorrelation的作用。
+        """
         if max_decorrelation_steps != 0:
-            for b, env in enumerate(self.envs):
-                n_steps = 1 + int(np.random.rand() * max_decorrelation_steps)
+            for b, env in enumerate(self.envs):  # 遍历所有environment，b为从0开始的索引值，env为envs里面的每一个environment实例
+                n_steps = 1 + int(np.random.rand() * max_decorrelation_steps)  # +1是防止结果为0导致逻辑不通
                 for _ in range(n_steps):
+                    # 参考Env._action_space这个成员变量的值，对AtariEnv就是计算IntBox.sample()，即在action space内随机选一个动作
                     a = env.action_space.sample()
-                    o, r, d, info = env.step(a)
-                    traj_infos[b].step(o, a, r, d, None, info)
+                    o, r, d, info = env.step(a)  # 执行action，得到observation, reward, done(是否完成标志), info(一些统计信息)
+                    traj_infos[b].step(o, a, r, d, None, info)  # 更新trajectory的一些统计信息
+                    """
+                    info是一个namedtuple，取出来的traj_done属性值，是一个bool，表明是否game over了(对Atari游戏来说)，如果没有game 
+                    over，还要看是不是已经done了(比如游戏通关了)，所以getattr()的default value设置成了done标志。
+                    """
                     if getattr(info, "traj_done", d):
-                        o = env.reset()
+                        o = env.reset()  # 重置environment，回到最初状态
                         traj_infos[b] = self.TrajInfoCls()
-                    if d:
+                    if d:  # done(比如游戏通关)
                         a = env.action_space.null_value()
                         r = 0
                 observation[b] = o
                 prev_action[b] = a
                 prev_reward[b] = r
-        # For action-server samplers.
+        # For action-server samplers. rlpyt有一种并行模式是Parallel-GPU，在这种模式下，会有一个action-server的概念(参考rlpyt论文)
         if hasattr(self, "step_buffer_np") and self.step_buffer_np is not None:
             self.step_buffer_np.observation[:] = observation
             self.step_buffer_np.action[:] = prev_action

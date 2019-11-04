@@ -1,9 +1,10 @@
-
+"""
+environment的基类。如果要开发一个非Atari游戏的强化学习应用，需要自己写一个environment class继承自这个类。
+"""
 from collections import namedtuple
 
-
 EnvStep = namedtuple("EnvStep",
-    ["observation", "reward", "done", "env_info"])
+                     ["observation", "reward", "done", "env_info"])
 EnvInfo = namedtuple("EnvInfo", [])  # Define in env file.
 EnvSpaces = namedtuple("EnvSpaces", ["observation", "action"])
 
@@ -38,17 +39,25 @@ class Env:
 
     @property
     def action_space(self):
+        """
+        动作空间，在子类(例如AtariEnv)中会赋值。
+        :return: 一个IntBox类型的对象。
+        """
         return self._action_space
 
     @property
     def observation_space(self):
+        """
+        在子类(例如AtariEnv)中会赋值，一个IntBox类型的对象。
+        :return: 一个IntBox类型的对象。
+        """
         return self._observation_space
 
     @property
     def spaces(self):
         return EnvSpaces(
-            observation=self.observation_space,
-            action=self.action_space,
+            observation=self.observation_space,  # 调用本类的observation_space()方法
+            action=self.action_space,  # 调用本类的action_space()方法
         )
 
     @property
@@ -59,4 +68,3 @@ class Env:
     def close(self):
         """Clean up operation."""
         pass
-

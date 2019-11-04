@@ -19,8 +19,8 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
         """
         prev_action = self.distribution.to_onehot(prev_action)
         model_inputs = buffer_to((observation, prev_action, prev_reward), device=self.device)
-        q = self.model(*model_inputs)  # torch.nn.Module子类的实例
-        return q.cpu()  # 将模型的所有参数(parameter)和缓冲区(buffer)都转移到CPU内存
+        q = self.model(*model_inputs)  # torch.nn.Module子类的实例，使用torch.nn.Module里定义的__call__调用，相当于计算模型输出(一个Tensor)
+        return q.cpu()  # 将tensor移动到CPU(内存)
 
     def initialize(self, env_spaces, share_memory=False, global_B=1, env_ranks=None):
         """
@@ -40,13 +40,13 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
 
     def to_device(self, cuda_idx=None):
         """
-        指定程序运行在什么设备上。
-        TODO: 不明白为什么要指定两次。假设在在父类的to_device()方法里已经指定了一次GPU，紧接着又在后面又指定了一次CPU，这有何意义？
+        指定把模型数据(parameter和buffer)放在什么设备上(CPU/GPU)。
+        父类是指定self.model的数据放在哪个GPU上，在本子类中是指定self.target_model的数据放在哪。
 
         :param cuda_idx: GPU编号
         """
         super().to_device(cuda_idx)
-        self.target_model.to(self.device)  # self.device在初始化的时候已经写死了是CPU，因此这里指定在CPU上运行。
+        self.target_model.to(self.device)  # self.device在初始化的时候已经写死了是CPU，因此这里指定在CPU上运行
 
     def state_dict(self):
         """
@@ -67,10 +67,21 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
         return AgentStep(action=action, agent_info=agent_info)
 
     def target(self, observation, prev_action, prev_reward):
+        """
+        计算Q值。
+        :param observation: 如其名。
+        :param prev_action: 前一个action。
+        :param prev_reward: 前一个reward。
+        :return: CPU(内存)里的Q值对应的Tensor。
+        """
         prev_action = self.distribution.to_onehot(prev_action)
         model_inputs = buffer_to((observation, prev_action, prev_reward), device=self.device)
+        # 计算Q值，self.target_model是一个torch.nn.Module子类的实例，使用torch.nn.Module里定义的__call__调用，相当于计算模型输出(一个Tensor)
         target_q = self.target_model(*model_inputs)
-        return target_q.cpu()
+        return target_q.cpu()  # 将tensor移动到CPU(内存)
 
     def update_target(self):
+        """
+        更新target network，即把main network的参数拷贝到target network上。
+        """
         self.target_model.load_state_dict(strip_ddp_state_dict(self.model.state_dict()))

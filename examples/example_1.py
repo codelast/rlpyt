@@ -34,7 +34,7 @@ def build_and_train(game="pong", run_ID=0, cuda_idx=None):
         eval_max_trajectories=5,
     )
     algo = DQN(min_steps_learn=1e3)  # Run with defaults.
-    agent = AtariDqnAgent()
+    agent = AtariDqnAgent()  # 在sampler中initialize
     runner = MinibatchRlEval(
         algo=algo,
         agent=agent,

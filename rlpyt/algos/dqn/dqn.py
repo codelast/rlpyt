@@ -178,7 +178,7 @@ class DQN(RlAlgorithm):
                 next_a = torch.argmax(next_qs, dim=-1)
                 target_q = select_at_indexes(next_a, target_qs)
             else:
-                target_q = torch.max(target_qs, dim=-1).values
+                target_q = torch.max(target_qs, dim=-1).values  # 返回输入张量给定维度上每行的最大值，并同时返回每个最大值的位置索引
         disc_target_q = (self.discount ** self.n_step_return) * target_q
         y = samples.return_ + (1 - samples.done_n.float()) * disc_target_q
         delta = y - q

@@ -15,6 +15,9 @@ AgentStep = namedarraytuple("AgentStep", ["action", "agent_info"])
 
 
 class BaseAgent:
+    """
+    agent的基类。
+    """
     recurrent = False
     alternating = False
 
@@ -28,32 +31,48 @@ class BaseAgent:
         if self.model_kwargs is None:
             self.model_kwargs = dict()
         # The rest only for async operations:
-        self._rw_lock = RWLock()
-        self._send_count = mp.RawValue("l", 0)
+        self._rw_lock = RWLock()  # 读写锁
+        self._send_count = mp.RawValue("l", 0)  # RawValue(typecode_or_type, *args) 返回从共享内存中分配的ctypes对象，l代表ctypes.c_long
         self._recv_count = 0
 
     def __call__(self, observation, prev_action, prev_reward):
         """
         Returns values from model forward pass on training data.
-        抛出NotImplementedError使得子类要实现这个方法。
+        __call__使得一个class可以像一个method一样调用，抛出NotImplementedError使得子类要实现这个方法。
         """
         raise NotImplementedError
 
     def initialize(self, env_spaces, share_memory=False, **kwargs):
-        """In this default setup, self.model is treated as the model needed
-        for action selection, so it is the only one shared with workers."""
+        """
+        In this default setup, self.model is treated as the model needed for action selection, so it is the only one
+        shared with workers.
+        该函数在sampler类(例如SerialSampler)中会被调用。
+        这里有点tricky：self.make_env_to_model_kwargs()在某些场景下，调用的不是本类的make_env_to_model_kwargs()函数，而是一个看似
+        与本类毫无关联的*Mixin类里的make_env_to_model_kwargs()函数，逻辑是这样的：以AtariDqnAgent类为例，它有两个父类 AtariMixin 和
+        DqnAgent，其中，AtariMixin 实现了 make_env_to_model_kwargs 函数，而 DqnAgent 类则继承自本类(BaseAgent)，这样的继承关系会
+        导致 AtariDqnAgent 在sampler中initialize的时候，最终调用的是 AtariMixin.make_env_to_model_kwargs()。我觉得搞得太复杂了，
+        没理解这样设计的意义。
+
+        :param env_spaces: 一个namedtuple，包含observation space 和 action space两个属性。
+        :param share_memory: bool，是否使用共享内存。
+        :param kwargs: 字典形式的可变参数。
+        """
         self.env_model_kwargs = self.make_env_to_model_kwargs(env_spaces)
-        self.model = self.ModelCls(**self.env_model_kwargs,
-                                   **self.model_kwargs)
+        self.model = self.ModelCls(**self.env_model_kwargs, **self.model_kwargs)  # torch.nn.Module的子类
         if share_memory:
-            self.model.share_memory()
+            self.model.share_memory()  # 使得self.model对应的模型参数可以在多进程间共享
             self.shared_model = self.model
         if self.initial_model_state_dict is not None:
-            self.model.load_state_dict(self.initial_model_state_dict)
-        self.env_spaces = env_spaces
+            self.model.load_state_dict(self.initial_model_state_dict)  # 加载模型
+        self.env_spaces = env_spaces  # 一个namedtuple，包含observation space 和 action space两个属性
         self.share_memory = share_memory
 
     def make_env_to_model_kwargs(self, env_spaces):
+        """
+        在一些子类以及看似不相关(但实际有间接关联)的*Mixin类中会覆盖这个函数。
+        :param env_spaces: 一个namedtuple，包含observation space 和 action space两个属性。
+        :return: 一个dict。
+        """
         return {}
 
     def to_device(self, cuda_idx=None):
@@ -63,9 +82,9 @@ class BaseAgent:
         if self.shared_model is not None:
             self.model = self.ModelCls(**self.env_model_kwargs,
                                        **self.model_kwargs)
-            self.model.load_state_dict(self.shared_model.state_dict())
+            self.model.load_state_dict(self.shared_model.state_dict())  # 拷贝共享内存里的模型参数到self.model里
         self.device = torch.device("cuda", index=cuda_idx)
-        self.model.to(self.device)
+        self.model.to(self.device)  # 把模型的parameter和buffer都移动到指定的设备上
         logger.log(f"Initialized agent model on device: {self.device}.")
 
     def data_parallel(self):

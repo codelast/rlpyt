@@ -26,12 +26,18 @@ class SerialSampler(BaseSampler):
         world_size=1,
     ):
         """
-        initialize()方法会在runner类(例如MinibatchRlBase)中的startup()方法里被调用
+        initialize()方法会在runner类(例如MinibatchRlBase)的startup()方法里被调用。
         """
         B = self.batch_spec.B  # 独立的trajectory的数量，即environment实例的数量。此值>=1
-        envs = [self.EnvCls(**self.env_kwargs) for _ in range(B)]  # 初始化每一个environment，生成一个environment的list
-        global_B = B * world_size
+        envs = [self.EnvCls(**self.env_kwargs) for _ in range(B)]  # 初始化每一个environment实例，生成一个list
+        global_B = B * world_size  # 这里的概念可能是指复制出来的N个environment实例的数量
         env_ranks = list(range(rank * B, (rank + 1) * B))
+        """
+        由于每一个environment的spaces都是一样的(这里是指action space 和 observation space)，因此只需要拿一个environment的实例出来，
+        即 envs[0]，再取其spaces，也就代表了每一个environment的spaces。这里的 .spaces 是被作为一个属性来使用，但实际上它是一个函数，在
+        class Env里面，用@property来修饰使之可以用属性的方式调用。总结：envs[0].spaces 得到的是一个namedtuple，其包含两个属性：
+        observation space 和 action space。 
+        """
         agent.initialize(envs[0].spaces, share_memory=False,
                          global_B=global_B, env_ranks=env_ranks)
         samples_pyt, samples_np, examples = build_samples_buffer(agent, envs[0],
@@ -61,13 +67,13 @@ class SerialSampler(BaseSampler):
                 max_trajectories=self.eval_max_trajectories,
             )
 
-        # 返回(observation, prev_action, prev_reward)以及trajectory的信息，所谓trajectory信息是指reward，非零reward的数量等统计值
+        # 返回一批数据(observation，action，reward等)，以及trajectory的信息，所谓trajectory信息是指reward，非零reward的数量等统计值
         agent_inputs, traj_infos = collector.start_envs(self.max_decorrelation_steps)
         collector.start_agent()
 
         self.agent = agent  # self.agent在本类中没有用，但尚未确定在外面使用SerialSampler的时候会不会使用
-        self.samples_pyt = samples_pyt  # PyTorch格式(即底层是torch.Tensor)的samples
-        self.samples_np = samples_np  # numpy格式(即底层是numpy array)的samples
+        self.samples_pyt = samples_pyt  # PyTorch数据格式(即底层是torch.Tensor)的samples
+        self.samples_np = samples_np  # numpy数据格式(即底层是numpy array)的samples
         self.collector = collector  # sample收集器
         self.agent_inputs = agent_inputs
         self.traj_infos = traj_infos
@@ -77,8 +83,8 @@ class SerialSampler(BaseSampler):
     def obtain_samples(self, itr):
         """
         采样一批数据。
-        :param itr: 整数，表示第几次迭代
-        :return:
+        :param itr: 第几次迭代
+        :return: TODO
         """
         # self.samples_np[:] = 0  # Unnecessary and may take time.
         agent_inputs, traj_infos, completed_infos = self.collector.collect_batch(
@@ -89,4 +95,9 @@ class SerialSampler(BaseSampler):
         return self.samples_pyt, completed_infos
 
     def evaluate_agent(self, itr):
+        """
+        做evaluation。
+        :param itr: 第几次迭代。
+        :return: TODO
+        """
         return self.eval_collector.collect_evaluation(itr)

@@ -71,7 +71,7 @@ class MinibatchRlBase(BaseRunner):
         )
 
         """
-        ￿batch_spec.size的实现参见 BatchSpec 类，它表示的所有的environment实例上的所有时间步的数量总和。这里又乘了一个没有说明含义的
+        batch_spec.size的实现参见 BatchSpec 类，它表示的所有的environment实例上的所有时间步的数量总和。这里又乘了一个没有说明含义的
         world_size，用一个不正经的比喻，我猜这里有大概是"平行宇宙"的概念(美剧闪电侠)，在"当前宇宙"内的发生的采样，它是算在 batch_spec.size 
         内的，而像这样的场景，我们可以把它复制很多个出来，用所有这些创造出来的集合来训练RL模型。
         """

@@ -1,10 +1,12 @@
-
 import multiprocessing as mp
 import queue
 
 
 class RWLock:
-    """Multiple simultaneous readers, one writer."""
+    """
+    Multiple simultaneous readers, one writer.
+    读写锁。可以同时有多个读取者，只能同时有一个写入者。
+    """
 
     def __init__(self):
         self.write_lock = mp.Lock()

@@ -1,18 +1,16 @@
-
-import numpy as np
 import os
-import atari_py
-import cv2
 from collections import namedtuple
 
+import atari_py
+import cv2
+import numpy as np
+
 from rlpyt.envs.base import Env, EnvStep
+from rlpyt.samplers.collections import TrajInfo
 from rlpyt.spaces.int_box import IntBox
 from rlpyt.utils.quick_args import save__init__args
-from rlpyt.samplers.collections import TrajInfo
-
 
 W, H = (80, 104)  # Crop two rows, then downsample by 2x (fast, clean image).
-
 
 EnvInfo = namedtuple("EnvInfo", ["game_score", "traj_done"])
 
@@ -44,8 +42,7 @@ class AtariEnv(Env):
         # ALE
         game_path = atari_py.get_game_path(game)
         if not os.path.exists(game_path):
-            raise IOError("You asked for game {} but path {} does not "
-                " exist".format(game, game_path))
+            raise IOError("You asked for game {} but path {} does not exist".format(game, game_path))
         self.ale = atari_py.ALEInterface()
         self.ale.setFloat(b'repeat_action_probability', repeat_action_probability)
         self.ale.loadROM(game_path)
@@ -54,8 +51,7 @@ class AtariEnv(Env):
         self._action_set = self.ale.getMinimalActionSet()
         self._action_space = IntBox(low=0, high=len(self._action_set))
         obs_shape = (num_img_obs, H, W)
-        self._observation_space = IntBox(low=0, high=255, shape=obs_shape,
-            dtype="uint8")
+        self._observation_space = IntBox(low=0, high=255, shape=obs_shape, dtype="uint8")
         self._max_frame = self.ale.getScreenGrayscale()
         self._raw_frame_1 = self._max_frame.copy()
         self._raw_frame_2 = self._max_frame.copy()
@@ -90,7 +86,7 @@ class AtariEnv(Env):
         self._update_obs()
         reward = np.sign(game_score) if self._clip_reward else game_score
         game_over = self.ale.game_over() or self._step_counter >= self.horizon
-        done = game_over or (self._episodic_lives and lost_life)
+        done = game_over or (self._episodic_lives and lost_life)  # bool类型
         info = EnvInfo(game_score=game_score, traj_done=game_over)
         self._step_counter += 1
         return EnvStep(self.get_obs(), reward, done, info)
