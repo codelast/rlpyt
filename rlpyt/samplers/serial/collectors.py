@@ -54,7 +54,7 @@ class SerialEvalCollector(BaseEvalCollector):
                     self.agent.reset_one(idx=b)
                 observation[b] = o
                 reward[b] = r
-            if self.max_trajectories is not None and len(completed_traj_infos) >= self.max_trajectories:
+            if self.max_trajectories is not None and len(completed_traj_infos) >= self.max_trajectories:  # early cutoff
                 logger.log("Evaluation reached max num trajectories "
                            f"({self.max_trajectories}).")
                 break

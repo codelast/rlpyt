@@ -254,7 +254,7 @@ class MinibatchRl(MinibatchRlBase):
                 self.store_diagnostics(itr, traj_infos, opt_info)  # 更新内存中的一些统计数据
                 if (itr + 1) % self.log_interval_itrs == 0:
                     self.log_diagnostics(itr)  # 记录诊断信息(写日志)
-        self.shutdown()
+        self.shutdown()  # 完成后的清理工作
 
     def initialize_logging(self):
         """
@@ -310,7 +310,7 @@ class MinibatchRlEval(MinibatchRlBase):
                 if (itr + 1) % self.log_interval_itrs == 0:  # 每迭代到记录一次日志的步数
                     eval_traj_infos, eval_time = self.evaluate_agent(itr)  # 评估模型
                     self.log_diagnostics(itr, eval_traj_infos, eval_time)  # 记录诊断信息(写日志)
-        self.shutdown()  # 模型训练完成后的清理工作
+        self.shutdown()  # 完成后的清理工作
 
     def evaluate_agent(self, itr):
         """

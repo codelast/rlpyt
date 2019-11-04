@@ -63,11 +63,11 @@ class SerialSampler(BaseSampler):
                 envs=eval_envs,
                 agent=agent,
                 TrajInfoCls=self.TrajInfoCls,
-                max_T=self.eval_max_steps // self.eval_n_envs,
+                max_T=self.eval_max_steps // self.eval_n_envs,  # 先做除法再向下取整。计算时间步的数量，这里有点计算"平均"时间步的意思
                 max_trajectories=self.eval_max_trajectories,
             )
 
-        # 返回一批数据(observation，action，reward等)，以及trajectory的信息，所谓trajectory信息是指reward，非零reward的数量等统计值
+        # 返回一批数据(observation，action，reward等)，以及所有environment对应的所有trajectory的信息(即reward，非零reward的数量等统计值)
         agent_inputs, traj_infos = collector.start_envs(self.max_decorrelation_steps)
         collector.start_agent()
 
@@ -76,7 +76,7 @@ class SerialSampler(BaseSampler):
         self.samples_np = samples_np  # numpy数据格式(即底层是numpy array)的samples
         self.collector = collector  # sample收集器
         self.agent_inputs = agent_inputs
-        self.traj_infos = traj_infos
+        self.traj_infos = traj_infos  # 一个list
         logger.log("Serial Sampler initialized.")
         return examples
 

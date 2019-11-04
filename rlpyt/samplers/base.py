@@ -1,13 +1,12 @@
+"""
+Class which interfaces with the Runner, in master process only.
+和Runner对接的类，只在主进程中运行。
+"""
 from rlpyt.samplers.collections import BatchSpec, TrajInfo
 from rlpyt.utils.quick_args import save__init__args
 
 
 class BaseSampler:
-    """
-    Class which interfaces with the Runner, in master process only.
-    和Runner对接的类，只在主进程中运行。
-    """
-
     alternating = False
 
     def __init__(

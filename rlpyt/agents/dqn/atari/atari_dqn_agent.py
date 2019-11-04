@@ -1,7 +1,9 @@
-
+"""
+这个class是和具体的environment(例如Atari)相关的。其父类 DqnAgent 则抽象到了和具体的environment无关。
+"""
+from rlpyt.agents.dqn.atari.mixin import AtariMixin
 from rlpyt.agents.dqn.dqn_agent import DqnAgent
 from rlpyt.models.dqn.atari_dqn_model import AtariDqnModel
-from rlpyt.agents.dqn.atari.mixin import AtariMixin
 
 
 class AtariDqnAgent(AtariMixin, DqnAgent):

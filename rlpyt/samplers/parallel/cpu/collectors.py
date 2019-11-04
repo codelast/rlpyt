@@ -30,7 +30,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                                    env_info)
                 if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))
-                    traj_infos[b] = self.TrajInfoCls()
+                    traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     o = env.reset()
                 if d:
                     self.agent.reset_one(idx=b)

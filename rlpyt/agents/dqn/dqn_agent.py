@@ -1,3 +1,6 @@
+"""
+这个class已经抽象到和具体的environment(例如Atari)无关，而它的子类还是有可能和具体的environment相关的。
+"""
 import torch
 
 from rlpyt.agents.base import BaseAgent, AgentStep
