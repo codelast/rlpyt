@@ -36,7 +36,7 @@ class AtariEnv(Env):
                  episodic_lives=True,
                  max_start_noops=30,
                  repeat_action_probability=0.,
-                 horizon=27000,
+                 horizon=27000,  # 在游戏角色没有死的时候，step大于这个值也会被判定为game over
                  ):
         save__init__args(locals(), underscore=True)
         # ALE
