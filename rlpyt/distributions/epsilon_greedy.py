@@ -13,12 +13,16 @@ class EpsilonGreedy(DiscreteMixin, Distribution):
         self._epsilon = epsilon
 
     def sample(self, q):
+        """
+        选择一个action。
+        :param q: 一个torch.Tensor类型的对象。
+        :return: TODO
+        """
         arg_select = torch.argmax(q, dim=-1)  # 按指定的维度(dim)返回最大元素的index
         mask = torch.rand(arg_select.shape) < self._epsilon  # 得到一个bool的矩阵，标识了torch.rand生成的随机数组里的每个元素是比self._epsilon大还是小
         """
         torch.randint()返回均匀分布的[low,high]之间的整数随机值，mask.sum()得到bool矩阵中True元素的个数(假设为x)，因此得到的arg_rand是
         x个[low,high]之间的随机数。例如 print(torch.randint(0, 20, (6, ))) 的输出可能是：tensor([14,  4,  7, 17, 16,  3])
-        # TODO: q 是一个 torch.nn.Module 的对象，其没有shape属性，为什么这里会没有问题？
         """
         arg_rand = torch.randint(low=0, high=q.shape[-1], size=(mask.sum(),))
         arg_select[mask] = arg_rand

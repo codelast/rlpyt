@@ -39,8 +39,12 @@ class AtariDqnModel(torch.nn.Module):
             self.head = MlpModel(conv_out_size, fc_sizes, output_size)
 
     def forward(self, observation, prev_action, prev_reward):
-        """Feedforward layers process as [T*B,H]. Return same leading dims as
-        input, can be [T,B], [B], or []."""
+        """
+        Feedforward layers process as [T*B,H]. Return same leading dims as input, can be [T,B], [B], or [].
+
+        forward是在agent类 DqnAgent 里面的 step() 函数里隐式调用的，由于 torch.nn.Module 类定义了 __call__()，因此 DqnAgent.step()
+        里面通过 self.model(*model_inputs) 这种方式就相当于调用了forward()。
+        """
         img = observation.type(torch.float)  # Expect torch.uint8 inputs
         img = img.mul_(1. / 255)  # From [0-255] to [0-1], in place.
 

@@ -28,7 +28,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
         for t in range(self.batch_T):  # batch_T：每个sampler迭代有多少个step
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
-            act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)
+            act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)  # 根据输入选择一个action，策略网络的前向传播过程在这里发生
             action = numpify_buffer(act_pyt)
             for b, env in enumerate(self.envs):
                 # Environment inputs and outputs are numpy arrays.

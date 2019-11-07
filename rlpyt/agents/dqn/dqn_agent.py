@@ -67,10 +67,10 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
         :param prev_reward: 之前累积的reward。
         :return: TODO：
         """
-        prev_action = self.distribution.to_onehot(prev_action)
-        model_inputs = buffer_to((observation, prev_action, prev_reward), device=self.device)
-        q = self.model(*model_inputs)  # 类型为torch.nn.Module
-        q = q.cpu()  # 把模型的所有参数和buffer移到CPU，返回类型为torch.nn.Module
+        prev_action = self.distribution.to_onehot(prev_action)  # 返回类型为 torch.Tensor
+        model_inputs = buffer_to((observation, prev_action, prev_reward), device=self.device)  # 策略网络的输入(torch.Tensor)
+        q = self.model(*model_inputs)  # self.model是torch.nn.Module的子类对象，这里是输入特征，计算网络的输出，因此会发生NN的forward过程
+        q = q.cpu()  # 把tensor移到CPU(内存)，返回torch.Tensor
         action = self.distribution.sample(q)  # 选择一个action
         agent_info = AgentInfo(q=q)
         # action, agent_info = buffer_to((action, agent_info), device="cpu")
