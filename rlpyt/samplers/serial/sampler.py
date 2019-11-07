@@ -67,7 +67,11 @@ class SerialSampler(BaseSampler):
                 max_trajectories=self.eval_max_trajectories,
             )
 
-        # 返回一批数据(observation，action，reward等)，以及所有environment对应的所有trajectory的信息(即reward，非零reward的数量等统计值)
+        """
+        收集(即采样)第一批数据(observation，action，reward等)，以及所有environment对应的所有trajectory的信息(含reward等统计值)。这里
+        之所以要收集第一批数据并保存到类成员变量 self.agent_inputs 中，是因为现在是Sampler初始化过程，当开始连续收集数据的时候，会在第一批
+        数据的基础上step下去，因此就把获取第一批数据的工作放到了这里。
+        """
         agent_inputs, traj_infos = collector.start_envs(self.max_decorrelation_steps)
         collector.start_agent()
 
@@ -82,7 +86,7 @@ class SerialSampler(BaseSampler):
 
     def obtain_samples(self, itr):
         """
-        采样一批数据。
+        采样一批数据。这个函数会在Runner类的子类(例如MinibatchRlEval)中被调用。
         :param itr: 第几次迭代
         :return: TODO
         """

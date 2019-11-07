@@ -27,12 +27,12 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
 
     def initialize(self, env_spaces, share_memory=False, global_B=1, env_ranks=None):
         """
-        初始化agent。
-        :param env_spaces:
-        :param share_memory:
+        初始化agent。这个函数在Sampler类(例如SerialSampler)中的 initialize() 里会被调用。
+        :param env_spaces: 参考 Env.spaces()，类型为 EnvSpaces 这样一个 namedtuple，包含observation space 和 action space两个属性。
+        :param share_memory: 为 True 时使得模型参数可以在多进程间共享，为 False 时不共享。
         :param global_B: 在BatchSpec中，表示独立的trajectory的数量，即environment实例的数量。这里的global_B可能是指所有env的总数
-        :param env_ranks:
-        :return:
+        :param env_ranks: TODO:
+        :return: TODO:
         """
         super().initialize(env_spaces, share_memory, global_B=global_B, env_ranks=env_ranks)
         self.target_model = self.ModelCls(**self.env_model_kwargs, **self.model_kwargs)  # torch.nn.Module的子类
@@ -60,6 +60,13 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
 
     @torch.no_grad()
     def step(self, observation, prev_action, prev_reward):
+        """
+        在environment中走一步。
+        :param observation: 其义自明。
+        :param prev_action: 前一个action。
+        :param prev_reward: 之前累积的reward。
+        :return: TODO：
+        """
         prev_action = self.distribution.to_onehot(prev_action)
         model_inputs = buffer_to((observation, prev_action, prev_reward), device=self.device)
         q = self.model(*model_inputs)  # 类型为torch.nn.Module

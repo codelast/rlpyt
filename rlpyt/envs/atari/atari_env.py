@@ -48,7 +48,7 @@ class AtariEnv(Env):
         self.ale.loadROM(game_path)
 
         # Spaces
-        self._action_set = self.ale.getMinimalActionSet()
+        self._action_set = self.ale.getMinimalActionSet()  # 最小的action set(一个numpy array)，不知道确切含义
         self._action_space = IntBox(low=0, high=len(self._action_set))
         obs_shape = (num_img_obs, H, W)  # H应该是指height，W应该是指width
         self._observation_space = IntBox(low=0, high=255, shape=obs_shape, dtype="uint8")
@@ -79,7 +79,12 @@ class AtariEnv(Env):
         return self.get_obs()  # 返回初始的observation
 
     def step(self, action):
-        a = self._action_set[action]
+        """
+        在environment中向前走一步。
+        :param action: 一个标量，其值在 self._action_set 的index范围内。
+        :return: 一个 EnvStep 对象，包含observation等数据。
+        """
+        a = self._action_set[action]  # 从action set(动作集)中取出一个具体的action
         game_score = np.array(0., dtype="float32")  # 游戏分数，其实就是一个标量值
         # 可以设置每一个step走游戏的几帧，这里就连续地执行N-1(假设N为帧数)次action
         for _ in range(self._frame_skip - 1):

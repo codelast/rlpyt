@@ -46,6 +46,12 @@ class BaseCollector:
             self.agent.sample_mode(itr=0)
 
     def collect_batch(self, agent_inputs, traj_infos):
+        """
+        收集(即采样)一批数据。
+        :param agent_inputs:
+        :param traj_infos: TrajInfo类对象组成的一个list，包含trajectory的一些统计信息。
+        :return: 由子类(例如 CpuResetCollector)实现。
+        """
         raise NotImplementedError
 
     def reset_if_needed(self, agent_inputs):
@@ -88,9 +94,10 @@ class DecorrelatingStartCollector(BaseCollector):
         """
         Calls reset() on every env and returns agent_inputs buffer.
 
-        :max_decorrelation_steps: 最大[去相关性]的步数。
+        这个函数在Sampler类(例如SerialSampler)中的 initialize() 里会被调用，进行诸如收集(采样)第一批数据的工作。
+        :param: max_decorrelation_steps: 最大[去相关性]的步数。
         :return 一个 namedarraytuple，包含3个元素(observation，action，reward)，每个元素又分别是一个list；以及trajectory的一些统计
-        信息。
+        信息(TrajInfo类对象组成的一个list)。
         """
         traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
         observations = list()
@@ -114,7 +121,14 @@ class DecorrelatingStartCollector(BaseCollector):
             for b, env in enumerate(self.envs):  # 遍历所有environment，b为从0开始的索引值，env为envs里面的每一个environment实例
                 n_steps = 1 + int(np.random.rand() * max_decorrelation_steps)  # +1是防止结果为0导致逻辑不通
                 for _ in range(n_steps):
-                    # 参考Env._action_space这个成员变量的值，对AtariEnv就是计算IntBox.sample()，即在action space内随机选一个动作
+                    """
+                    关于env.action_space，可参考Env._action_space这个成员变量的值。这里的 env.action_space.sample()，对AtariEnv
+                    就是计算IntBox.sample()，即在action space内随机选一个动作的index(并非实际动作)，这里没有直接得到action，而是得到
+                    一个action space内的一个index，原因是：在env.step(a)里会根据index获取一个action。另外，这里之所以随机获取action
+                    space内的一个index，是因为此时是在Collector类的start_envs()函数中，也就是说此时刚开始从environment里收集数据，
+                    因此第一次收集的话，是不知道应该采取什么action的(不像后面已经得到一个network的时候可以根据network算出一个action)，
+                    所以这里就随机选取一个index就好了。
+                    """
                     a = env.action_space.sample()
                     o, r, d, info = env.step(a)  # 执行action，得到observation, reward, done(是否完成标志), info(一些统计信息)
                     traj_infos[b].step(o, a, r, d, None, info)  # 更新trajectory的一些统计信息

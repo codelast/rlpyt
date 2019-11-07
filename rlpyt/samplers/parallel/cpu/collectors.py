@@ -11,14 +11,21 @@ class CpuResetCollector(DecorrelatingStartCollector):
     def collect_batch(self, agent_inputs, traj_infos, itr):
         # Numpy arrays can be written to from numpy arrays or torch tensors
         # (whereas torch tensors can only be written to from torch tensors).
+        """
+        收集(即采样)一批数据。
+        :param agent_inputs:
+        :param traj_infos: TrajInfo类对象组成的一个list，包含trajectory的一些统计信息。
+        :param itr: 第几次迭代。
+        :return: AgentInputs, list(TrajInfo对象), list(TrajInfo对象)
+        """
         agent_buf, env_buf = self.samples_np.agent, self.samples_np.env
         completed_infos = list()
-        observation, action, reward = agent_inputs
+        observation, action, reward = agent_inputs  # 右式：一个namedarraytuple，参见 rlpyt/agents/base.py 中的 AgentInputs
         obs_pyt, act_pyt, rew_pyt = torchify_buffer(agent_inputs)
         agent_buf.prev_action[0] = action  # Leading prev_action.
         env_buf.prev_reward[0] = reward
         self.agent.sample_mode(itr)
-        for t in range(self.batch_T):  # batch_T：每个sampler迭代有多少个时间步长
+        for t in range(self.batch_T):  # batch_T：每个sampler迭代有多少个step
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
             act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)
