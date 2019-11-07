@@ -126,8 +126,8 @@ class DecorrelatingStartCollector(BaseCollector):
                     就是计算IntBox.sample()，即在action space内随机选一个动作的index(并非实际动作)，这里没有直接得到action，而是得到
                     一个action space内的一个index，原因是：在env.step(a)里会根据index获取一个action。另外，这里之所以随机获取action
                     space内的一个index，是因为此时是在Collector类的start_envs()函数中，也就是说此时刚开始从environment里收集数据，
-                    因此第一次收集的话，是不知道应该采取什么action的(不像后面已经得到一个network的时候可以根据network算出一个action)，
-                    所以这里就随机选取一个index就好了。
+                    因此第一次收集的话，是不知道应该采取什么action的(不像后面已经得到一个network的时候可以根据前面的observation算出一个
+                    action)，所以这里就随机选取一个index就好了。
                     """
                     a = env.action_space.sample()
                     o, r, d, info = env.step(a)  # 执行action，得到observation, reward, done(是否完成标志), info(一些统计信息)
