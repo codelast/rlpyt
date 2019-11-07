@@ -38,8 +38,8 @@ class AtariEnv(Env):
                  repeat_action_probability=0.,
                  horizon=27000,  # 在游戏角色没有死的时候，step大于这个值也会被判定为game over
                  ):
-        save__init__args(locals(), underscore=True)
-        # ALE
+        save__init__args(locals(), underscore=True)  # 非常tricky的做法：把局部变量保存到实例的属性中，之后如果找不到self.xxx的定义就在这里面找
+        # ALE，即电玩学习环境(Arcade Learning Environment)，它提供了一个关于Atari 2600游戏的数百个游戏环境的接口
         game_path = atari_py.get_game_path(game)
         if not os.path.exists(game_path):
             raise IOError("You asked for game {} but path {} does not exist".format(game, game_path))
@@ -50,12 +50,12 @@ class AtariEnv(Env):
         # Spaces
         self._action_set = self.ale.getMinimalActionSet()
         self._action_space = IntBox(low=0, high=len(self._action_set))
-        obs_shape = (num_img_obs, H, W)
+        obs_shape = (num_img_obs, H, W)  # H应该是指height，W应该是指width
         self._observation_space = IntBox(low=0, high=255, shape=obs_shape, dtype="uint8")
         self._max_frame = self.ale.getScreenGrayscale()
         self._raw_frame_1 = self._max_frame.copy()
         self._raw_frame_2 = self._max_frame.copy()
-        self._obs = np.zeros(shape=obs_shape, dtype="uint8")
+        self._obs = np.zeros(shape=obs_shape, dtype="uint8")  # 初始的observation
 
         # Settings
         self._has_fire = "FIRE" in self.get_action_meanings()
@@ -64,34 +64,47 @@ class AtariEnv(Env):
         self.reset()
 
     def reset(self, hard=False):
+        """
+        复位游戏到初始状态。
+        :param hard: 不知道干嘛用的。
+        :return: 初始的observation，在这里是一个numpy array。
+        """
         self.ale.reset_game()
         self._reset_obs()
         self._life_reset()
         for _ in range(np.random.randint(0, self._max_start_noops + 1)):
             self.ale.act(0)
         self._update_obs()  # (don't bother to populate any frame history)
-        self._step_counter = 0
-        return self.get_obs()
+        self._step_counter = 0  # 用于统计走了多少个step的计数器
+        return self.get_obs()  # 返回初始的observation
 
     def step(self, action):
         a = self._action_set[action]
-        game_score = np.array(0., dtype="float32")
+        game_score = np.array(0., dtype="float32")  # 游戏分数，其实就是一个标量值
+        # 可以设置每一个step走游戏的几帧，这里就连续地执行N-1(假设N为帧数)次action
         for _ in range(self._frame_skip - 1):
-            game_score += self.ale.act(a)
+            game_score += self.ale.act(a)  # 执行一个action，得到一个score，累加到原来已经得到的分数上
         self._get_screen(1)
-        game_score += self.ale.act(a)
-        lost_life = self._check_life()  # Advances from lost_life state.
+        game_score += self.ale.act(a)  # 上面skip的frame，还差一帧，这里补上执行一次action
+        lost_life = self._check_life()  # Advances from lost_life state. 看看游戏角色是不是挂了
         if lost_life and self._episodic_lives:
             self._reset_obs()  # Internal reset.
         self._update_obs()
+        # 奖励值。当设置了_clip_reward的时候使用-1，0，1作为reward，否则就使用真实的游戏分数作为reward
         reward = np.sign(game_score) if self._clip_reward else game_score
-        game_over = self.ale.game_over() or self._step_counter >= self.horizon
+        game_over = self.ale.game_over() or self._step_counter >= self.horizon  # 判断游戏是不是结束了，当horizon达到阈值时也结束
         done = game_over or (self._episodic_lives and lost_life)  # bool类型
-        info = EnvInfo(game_score=game_score, traj_done=game_over)
-        self._step_counter += 1
+        info = EnvInfo(game_score=game_score, traj_done=game_over)  # 当前environment的一些信息，比如游戏分数等
+        self._step_counter += 1  # 用于统计走了多少个step的计数器
         return EnvStep(self.get_obs(), reward, done, info)
 
     def render(self, wait=10, show_full_obs=False):
+        """
+        图形渲染(在窗口中展示游戏画面)。
+        :param wait:
+        :param show_full_obs:
+        :return:
+        """
         img = self.get_obs()
         if show_full_obs:
             shape = img.shape

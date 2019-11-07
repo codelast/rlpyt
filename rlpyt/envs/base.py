@@ -3,8 +3,7 @@ environment的基类。如果要开发一个非Atari游戏的强化学习应用�
 """
 from collections import namedtuple
 
-EnvStep = namedtuple("EnvStep",
-                     ["observation", "reward", "done", "env_info"])
+EnvStep = namedtuple("EnvStep", ["observation", "reward", "done", "env_info"])
 EnvInfo = namedtuple("EnvInfo", [])  # Define in env file.
 EnvSpaces = namedtuple("EnvSpaces", ["observation", "action"])
 
