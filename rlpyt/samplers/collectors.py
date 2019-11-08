@@ -138,7 +138,7 @@ class DecorrelatingStartCollector(BaseCollector):
                     """
                     if getattr(info, "traj_done", d):
                         o = env.reset()  # 重置environment，回到最初状态
-                        traj_infos[b] = self.TrajInfoCls()
+                        traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     if d:  # done(比如游戏通关)
                         a = env.action_space.null_value()
                         r = 0

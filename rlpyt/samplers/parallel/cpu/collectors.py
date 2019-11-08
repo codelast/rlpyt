@@ -12,7 +12,9 @@ class CpuResetCollector(DecorrelatingStartCollector):
         # Numpy arrays can be written to from numpy arrays or torch tensors
         # (whereas torch tensors can only be written to from torch tensors).
         """
-        收集(即采样)一批数据。
+        收集(即采样)一批数据。这里面会发生推断action的过程(NN的前向传播)。
+        整个过程中，会发生几种step(步进)事件 ：在agent中step()，在environment中step()，在trajectory中step()。
+
         :param agent_inputs:
         :param traj_infos: TrajInfo类对象组成的一个list，包含trajectory的一些统计信息。
         :param itr: 第几次迭代。
@@ -29,17 +31,16 @@ class CpuResetCollector(DecorrelatingStartCollector):
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
             act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)  # 根据输入选择一个action，策略网络的前向传播过程在这里发生
-            action = numpify_buffer(act_pyt)
+            action = numpify_buffer(act_pyt)  # action由torch.Tensor转换成numpy array格式
             for b, env in enumerate(self.envs):
                 # Environment inputs and outputs are numpy arrays.
-                o, r, d, env_info = env.step(action[b])
-                traj_infos[b].step(observation[b], action[b], r, d, agent_info[b],
-                                   env_info)
-                if getattr(env_info, "traj_done", d):
+                o, r, d, env_info = env.step(action[b])  # 计算reward，统计environment信息等
+                traj_infos[b].step(observation[b], action[b], r, d, agent_info[b], env_info)  # 统计trajectory的信息
+                if getattr(env_info, "traj_done", d):  # EnvInfo里包含 traj_done 的情况，有可能是游戏玩得烂一下子就game over了
                     completed_infos.append(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     o = env.reset()
-                if d:
+                if d:  # done标志。对游戏来说，done的情况包含一局游戏game over，也包含没有剩余的生命了(TODO:确认是否正确？)
                     self.agent.reset_one(idx=b)
                 observation[b] = o
                 reward[b] = r

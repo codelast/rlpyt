@@ -37,6 +37,11 @@ def np_mp_array(shape, dtype):
 
 
 def torchify_buffer(buffer_):
+    """
+    把输入数据转换成torch.Tensor格式。
+    :param buffer_: 输入数据，可能是numpy array，torch.Tensor等格式。
+    :return: 转换得到的torch.Tensor。
+    """
     if buffer_ is None:
         return
     if isinstance(buffer_, np.ndarray):
@@ -50,6 +55,11 @@ def torchify_buffer(buffer_):
 
 
 def numpify_buffer(buffer_):
+    """
+    把输入数据转换成numpy array格式。
+    :param buffer_: 输入数据，可能是torch.Tensor，numpy array等格式。
+    :return: 转换得到的numpy array。
+    """
     if buffer_ is None:
         return
     if isinstance(buffer_, torch.Tensor):

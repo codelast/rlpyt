@@ -80,15 +80,19 @@ class AtariEnv(Env):
 
     def step(self, action):
         """
-        在environment中向前走一步。
-        :param action: 一个标量，其值在 self._action_set 的index范围内。
+        在environment中向前走一步。 这个函数在Collector类(例如)的collect_batch()函数中会被调用。
+        注意：policy network的前向传播过程不是在这里发生的，而是在agent类(例如DqnAgent)的step()函数里发生(由Collector类的
+        collect_batch()函数调用)。environment里的step()，输入的action已经是policy network推断出来的action了，在这里做的工作主要是：
+        计算该action带来的reward，判断trajectory是否结束，记录一些统计信息等。
+
+        :param action: 一个标量，其值在 self._action_set 的index范围内。TODO: 确认是否正确？
         :return: 一个 EnvStep 对象，包含observation等数据。
         """
         a = self._action_set[action]  # 从action set(动作集)中取出一个具体的action
-        game_score = np.array(0., dtype="float32")  # 游戏分数，其实就是一个标量值
+        game_score = np.array(0., dtype="float32")  # 游戏分数，其实就是一个标量值。这个函数里算出来的只是当前step的score而不是整个游戏过程的score
         # 可以设置每一个step走游戏的几帧，这里就连续地执行N-1(假设N为帧数)次action
         for _ in range(self._frame_skip - 1):
-            game_score += self.ale.act(a)  # 执行一个action，得到一个score，累加到原来已经得到的分数上
+            game_score += self.ale.act(a)  # 执行一个action，得到一个score，累加到原来已经得到的分数上，这里累加也只是累加本step内的分数
         self._get_screen(1)
         game_score += self.ale.act(a)  # 上面skip的frame，还差一帧，这里补上执行一次action
         lost_life = self._check_life()  # Advances from lost_life state. 看看游戏角色是不是挂了
@@ -106,9 +110,8 @@ class AtariEnv(Env):
     def render(self, wait=10, show_full_obs=False):
         """
         图形渲染(在窗口中展示游戏画面)。
-        :param wait:
-        :param show_full_obs:
-        :return:
+        :param wait: 窗口显示的时间(毫秒)，为0或不传都是无限等待。
+        :param show_full_obs: TODO
         """
         img = self.get_obs()
         if show_full_obs:

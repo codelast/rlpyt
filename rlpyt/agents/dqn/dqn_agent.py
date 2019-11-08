@@ -28,6 +28,7 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
     def initialize(self, env_spaces, share_memory=False, global_B=1, env_ranks=None):
         """
         初始化agent。这个函数在Sampler类(例如SerialSampler)中的 initialize() 里会被调用。
+
         :param env_spaces: 参考 Env.spaces()，类型为 EnvSpaces 这样一个 namedtuple，包含observation space 和 action space两个属性。
         :param share_memory: 为 True 时使得模型参数可以在多进程间共享，为 False 时不共享。
         :param global_B: 在BatchSpec中，表示独立的trajectory的数量，即environment实例的数量。这里的global_B可能是指所有env的总数
@@ -54,6 +55,7 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
     def state_dict(self):
         """
         返回两个网络的state数据。例如网络的weight，bias等。
+
         :return: 一个dict
         """
         return dict(model=self.model.state_dict(), target=self.target_model.state_dict())
@@ -61,17 +63,19 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
     @torch.no_grad()
     def step(self, observation, prev_action, prev_reward):
         """
-        在environment中走一步。
+        在environment中走一步。这里会发生policy network的前向传播过程(比较耗计算资源的操作)，即根据输入(例如observation)计算下一步要采
+        取的action。
+
         :param observation: 其义自明。
         :param prev_action: 前一个action。
         :param prev_reward: 之前累积的reward。
-        :return: TODO：
+        :return: 要采取的action(类型为torch.Tensor)，以及agent的信息(例如Q值)
         """
         prev_action = self.distribution.to_onehot(prev_action)  # 返回类型为 torch.Tensor
         model_inputs = buffer_to((observation, prev_action, prev_reward), device=self.device)  # 策略网络的输入(torch.Tensor)
-        q = self.model(*model_inputs)  # self.model是torch.nn.Module的子类对象，这里是输入特征，计算网络的输出，因此会发生NN的forward过程
+        q = self.model(*model_inputs)  # self.model是torch.nn.Module的子类对象，这里是输入特征计算网络的输出，因此会发生NN的forward过程
         q = q.cpu()  # 把tensor移到CPU(内存)，返回torch.Tensor
-        action = self.distribution.sample(q)  # 选择一个action
+        action = self.distribution.sample(q)  # 选择一个action(torch.Tensor)
         agent_info = AgentInfo(q=q)
         # action, agent_info = buffer_to((action, agent_info), device="cpu")
         return AgentStep(action=action, agent_info=agent_info)
@@ -79,6 +83,7 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
     def target(self, observation, prev_action, prev_reward):
         """
         计算Q值。
+
         :param observation: 如其名。
         :param prev_action: 前一个action。
         :param prev_reward: 前一个reward。
