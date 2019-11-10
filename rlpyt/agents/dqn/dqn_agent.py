@@ -63,7 +63,8 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
     @torch.no_grad()
     def step(self, observation, prev_action, prev_reward):
         """
-        在environment中走一步。这里会发生policy network的前向传播过程(比较耗计算资源的操作)，即根据输入(例如observation)计算下一步要采
+        在environment中走一步。这个函数在Collector类的collect_batch()函数中会被调用。
+        这里会发生policy network的前向传播过程(比较耗计算资源的操作)，即根据输入(例如observation)计算下一步要采
         取的action。
 
         :param observation: 其义自明。
