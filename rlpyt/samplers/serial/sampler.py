@@ -87,6 +87,7 @@ class SerialSampler(BaseSampler):
     def obtain_samples(self, itr):
         """
         采样一批数据。这个函数会在Runner类的子类(例如MinibatchRlEval)中被调用。
+
         :param itr: 第几次迭代
         :return: TODO
         """
@@ -94,6 +95,7 @@ class SerialSampler(BaseSampler):
         agent_inputs, traj_infos, completed_infos = self.collector.collect_batch(
             self.agent_inputs, self.traj_infos, itr)  # 采样第itr次
         self.collector.reset_if_needed(agent_inputs)
+        # 用每一次collect_batch()得到的新数据替换掉旧数据，下一次collect_batch()的时候就是在新数据的基础上进行的step
         self.agent_inputs = agent_inputs
         self.traj_infos = traj_infos
         return self.samples_pyt, completed_infos
@@ -101,6 +103,7 @@ class SerialSampler(BaseSampler):
     def evaluate_agent(self, itr):
         """
         做evaluation。
+
         :param itr: 第几次迭代。
         :return: TODO
         """

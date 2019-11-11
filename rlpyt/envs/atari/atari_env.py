@@ -77,7 +77,7 @@ class AtariEnv(Env):
             self.ale.act(0)
         self._update_obs()  # (don't bother to populate any frame history)
         self._step_counter = 0  # 用于统计走了多少个step的计数器
-        return self.get_obs()  # 返回初始的observation
+        return self.get_obs()  # 返回当前的observation，由于上面已经reset过observation了，因此这里返回的就是初始的observation
 
     def step(self, action):
         """

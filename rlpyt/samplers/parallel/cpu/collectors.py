@@ -16,7 +16,8 @@ class CpuResetCollector(DecorrelatingStartCollector):
         # Numpy arrays can be written to from numpy arrays or torch tensors
         # (whereas torch tensors can only be written to from torch tensors).
         """
-        收集(即采样)一批数据。这里面会发生推断action的过程(NN的前向传播)。
+        收集(即采样)一批数据。这个函数在Sampler类(例如SerialSampler)的obtain_samples()函数中会被调用。
+        这里面会发生推断action的过程(NN的前向传播)。
         整个过程中，会发生几种step(步进)事件 ：在agent中step()，在environment中step()，在trajectory中step()。
 
         :param agent_inputs:
@@ -31,7 +32,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
         agent_buf.prev_action[0] = action  # Leading prev_action.
         env_buf.prev_reward[0] = reward
         self.agent.sample_mode(itr)
-        for t in range(self.batch_T):  # batch_T：每个sampler迭代有多少个step
+        for t in range(self.batch_T):  # batch_T：每个trajectory有多少个time step
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
             act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)  # 根据输入选择一个action，策略网络的前向传播过程在这里发生
@@ -42,7 +43,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                 traj_infos[b].step(observation[b], action[b], r, d, agent_info[b], env_info)  # 统计trajectory的信息
                 # EnvInfo里traj_done属性为True的情况，对游戏来说不一定是玩到赢了一关，也有可能是游戏玩得差一下子就game over了
                 if getattr(env_info, "traj_done", d):
-                    completed_infos.append(traj_infos[b].terminate(o))
+                    completed_infos.append(traj_infos[b].terminate(o))  # 传入的observation参数其实没有用
                     traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     o = env.reset()
                 if d:  # done标志。对游戏来说，done的情况包含一局游戏game over，也包含没有剩余的生命了(TODO:确认是否正确？)
@@ -64,7 +65,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
         return AgentInputs(observation, action, reward), traj_infos, completed_infos
 
 
-class CpuWaitResetCollector(DecorrelatingStartCollector):
+class CpuWaitResetCollector(DecorrelatingStartCollector) :
     mid_batch_reset = False
 
     def __init__(self, *args, **kwargs):

@@ -48,6 +48,7 @@ class BaseCollector:
     def collect_batch(self, agent_inputs, traj_infos):
         """
         收集(即采样)一批数据。
+
         :param agent_inputs:
         :param traj_infos: TrajInfo类对象组成的一个list，包含trajectory的一些统计信息。
         :return: 由子类(例如 CpuResetCollector)实现。

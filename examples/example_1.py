@@ -26,7 +26,7 @@ def build_and_train(game="pong", run_ID=0, cuda_idx=None):
         EnvCls=AtariEnv,
         env_kwargs=dict(game=game),
         eval_env_kwargs=dict(game=game),
-        batch_T=4,  # Four time-steps per sampler iteration. 每个sampler迭代有多少个时间步长
+        batch_T=4,  # Four time-steps per sampler iteration. 每个trajectory有多少个time step
         batch_B=1,  # 有多少个并行的environment实例
         max_decorrelation_steps=0,
         eval_n_envs=10,
