@@ -47,8 +47,8 @@ class AtariEnv(Env):
         self.ale.setFloat(b'repeat_action_probability', repeat_action_probability)
         self.ale.loadROM(game_path)
 
-        # Spaces
-        self._action_set = self.ale.getMinimalActionSet()  # 最小的action set(一个numpy array)，不知道确切含义
+        # Spaces，某些游戏可能不会对控制输入的所有组合都使用所有动作，例如pong游戏仅使用2个方向和射击键，这里要获取当前游戏使用的动作集
+        self._action_set = self.ale.getMinimalActionSet()  # 最小的action set(一个numpy array)
         self._action_space = IntBox(low=0, high=len(self._action_set))
         obs_shape = (num_img_obs, H, W)  # H应该是指height，W应该是指width
         self._observation_space = IntBox(low=0, high=255, shape=obs_shape, dtype="uint8")
