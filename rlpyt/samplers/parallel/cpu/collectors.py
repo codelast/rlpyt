@@ -46,7 +46,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                     traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     o = env.reset()
                 if d:  # done标志。对游戏来说，done的情况包含一局游戏game over，也包含没有剩余的生命了(TODO:确认是否正确？)
-                    self.agent.reset_one(idx=b)
+                    self.agent.reset_one(idx=b)  # 只对RecurrentAgentMixin有用，用处暂时不理解(TODO:)
                 observation[b] = o
                 reward[b] = r
                 env_buf.done[t, b] = d
