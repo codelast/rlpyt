@@ -15,7 +15,7 @@ class EpsilonGreedy(DiscreteMixin, Distribution):
     def sample(self, q):
         """
         按Epsilon-Greedy算法对输入数据(矩阵)做采样。这个函数只有短短几行，但是设计很巧妙。它想做的事情是：找出输入矩阵某个维度上的最大值，然
-        后按一定的机率(即epsilon)“不选取”那个值最大的index，最终得到一个代表“有少量随机性”的最大值index矩阵。
+        后按一定的机率(即epsilon)“不选取”那个值最大的index，最终得到一个具有“少量随机性”的最大值index矩阵。
 
         举一个例子来说明这个函数的逻辑：假设 self._epsilon = 0.3，且输入的 q 为 3x4 的一个矩阵，即
         [[-0.2187, -0.2758,  0.4933,  1.0700],
@@ -32,9 +32,9 @@ class EpsilonGreedy(DiscreteMixin, Distribution):
         mask.sum() 的值为 2，因为这等同于执行 torch.sum(mask)，即计算 mask 这个 Tensor 上的所有元素的和，对元素为 bool 类型的情况，
         True为1，False为0，因此结果为2。
         q.shape[-1] 的值为 4，因为 shape 为(3, 4)，因此 shape[-1] 就是最后一个值，即 4。
-        因此 arg_rand 这一句执行的语句就是：torch.rand(low=0, high=4, size=(2, ))，即在 [0, 4] 间随机取两个整数，结果为 [2, 3]
+        因此 arg_rand 这一句执行的语句就是：torch.rand(low=0, high=4, size=(2, ))，即在 [0, 4) 间随机取两个整数，结果为 [2, 3]
 
-        arg_select[mask] = arg_rand 这句在执行之前，arg_select为[3, 1, 2]，mask为[True, False,  True]，arg_rand为[2, 3]，对
+        arg_select[mask] = arg_rand 这句在执行之前，arg_select为[3, 1, 2]，mask为[True, False, True]，arg_rand为[2, 3]，对
         mask里为True的两个位置，找到arg_select里的对应位置，替换成arg_rand里的值，就是最后的结果：[2, 1, 3]。
 
 
@@ -44,11 +44,11 @@ class EpsilonGreedy(DiscreteMixin, Distribution):
         arg_select = torch.argmax(q, dim=-1)  # 返回指定的维度(dim)上，值最大的那个数的index。-1表示最后一个维度，即等同于dim=1的效果
         mask = torch.rand(arg_select.shape) < self._epsilon  # 得到一个bool的矩阵，标识了torch.rand生成的随机数组里的每个元素是比self._epsilon大还是小
         """
-        torch.randint()返回均匀分布的[low,high]之间的整数随机值，mask.sum()得到bool矩阵中True元素的个数(假设为x)，因此得到的arg_rand是
-        x个[low,high]之间的随机数。例如 print(torch.randint(0, 20, (6, ))) 的输出可能是：tensor([14,  4,  7, 17, 16,  3])
+        torch.randint()返回均匀分布的[low,high)之间的整数随机值，mask.sum()得到bool矩阵中True元素的个数(假设为x)，因此得到的arg_rand是
+        x个[low,high)之间的随机数。例如 print(torch.randint(0, 20, (6, ))) 的输出可能是：tensor([14,  4,  7, 17, 16,  3])
         """
         arg_rand = torch.randint(low=0, high=q.shape[-1], size=(mask.sum(),))
-        arg_select[mask] = arg_rand
+        arg_select[mask] = arg_rand  # mask是一个bool的Tensor，把它传给另一个Tensor arg_select的时候，返回的是mask中为True的那些entry
         return arg_select
 
     @property
