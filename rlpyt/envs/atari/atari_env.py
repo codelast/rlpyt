@@ -66,12 +66,13 @@ class AtariEnv(Env):
     def reset(self, hard=False):
         """
         复位游戏到初始状态。
+
         :param hard: 不知道干嘛用的。
         :return: 初始的observation，在这里是一个numpy array。
         """
         self.ale.reset_game()
-        self._reset_obs()
-        self._life_reset()
+        self._reset_obs()  # 重置observation
+        self._life_reset()  # 重置生命值
         for _ in range(np.random.randint(0, self._max_start_noops + 1)):
             self.ale.act(0)
         self._update_obs()  # (don't bother to populate any frame history)

@@ -1,3 +1,7 @@
+"""
+收集(即采样)数据。
+这个类抽象成了和具体的environment(例如Atari)无关。
+"""
 import numpy as np
 
 from rlpyt.agents.base import AgentInputs
@@ -36,7 +40,8 @@ class CpuResetCollector(DecorrelatingStartCollector):
                 # Environment inputs and outputs are numpy arrays.
                 o, r, d, env_info = env.step(action[b])  # 计算reward，统计environment信息等
                 traj_infos[b].step(observation[b], action[b], r, d, agent_info[b], env_info)  # 统计trajectory的信息
-                if getattr(env_info, "traj_done", d):  # EnvInfo里包含 traj_done 的情况，有可能是游戏玩得烂一下子就game over了
+                # EnvInfo里traj_done属性为True的情况，对游戏来说不一定是玩到赢了一关，也有可能是游戏玩得差一下子就game over了
+                if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     o = env.reset()
