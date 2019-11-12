@@ -25,14 +25,14 @@ class CpuResetCollector(DecorrelatingStartCollector):
         :param itr: 第几次迭代。
         :return: AgentInputs, list(TrajInfo对象), list(TrajInfo对象)
         """
-        agent_buf, env_buf = self.samples_np.agent, self.samples_np.env
+        agent_buf, env_buf = self.samples_np.agent, self.samples_np.env  # self.samples_np在Sampler类中的initialize()函数里初始化
         completed_infos = list()
         observation, action, reward = agent_inputs  # 右式：一个namedarraytuple，参见 rlpyt/agents/base.py 中的 AgentInputs
-        obs_pyt, act_pyt, rew_pyt = torchify_buffer(agent_inputs)
+        obs_pyt, act_pyt, rew_pyt = torchify_buffer(agent_inputs)  # 转换成torch.Tensor格式
         agent_buf.prev_action[0] = action  # Leading prev_action.
         env_buf.prev_reward[0] = reward
         self.agent.sample_mode(itr)
-        for t in range(self.batch_T):  # batch_T：每个trajectory有多少个time step
+        for t in range(self.batch_T):  # batch_T：在采集数据的时候，每个循环(也就是这里)走多少个time step
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
             act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)  # 根据输入选择一个action，策略网络的前向传播过程在这里发生

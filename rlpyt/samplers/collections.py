@@ -31,7 +31,7 @@ class BatchSpec(namedtuple("BatchSpec", "T B")):
         return self.T * self.B
 
 
-class TrajInfoTrajInfo(AttrDict):
+class TrajInfo(AttrDict):
     """
     Because it inits as an AttrDict, this has the methods of a dictionary,
     e.g. the attributes can be iterated through by traj_info.items()
