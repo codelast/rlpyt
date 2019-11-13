@@ -1,5 +1,5 @@
 """
-environment的基类。如果要开发一个非Atari游戏的强化学习应用，需要自己写一个environment class继承自这个类。
+environment的父类。如果要开发一个非Atari游戏的强化学习应用，需要自己写一个environment class继承自这个类。
 """
 from collections import namedtuple
 

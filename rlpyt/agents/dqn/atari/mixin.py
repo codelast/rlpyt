@@ -15,5 +15,11 @@ AtariDqnAgent)的里面添加一个make_env_to_model_kwargs()函数呢？因为�
 class AtariMixin:
 
     def make_env_to_model_kwargs(self, env_spaces):
+        """
+        为具体的model类(例如AtariDqnModel)实例化提供一些必需的特殊参数。
+
+        :param env_spaces: 一个namedtuple(参考class Env里的EnvSpaces)，包含observation space 和 action space两个属性。
+        :return: 一个dict，其包含创建model类(例如AtariDqnModel)对象所需的特殊参数。
+        """
         return dict(image_shape=env_spaces.observation.shape,
                     output_size=env_spaces.action.n)
