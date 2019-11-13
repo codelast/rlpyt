@@ -65,7 +65,7 @@ class AtariEnv(Env):
 
     def reset(self, hard=False):
         """
-        复位游戏到初始状态。
+        重置environment。
 
         :param hard: 不知道干嘛用的。
         :return: 初始的observation，在这里是一个numpy array。

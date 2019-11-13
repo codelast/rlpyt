@@ -1,3 +1,6 @@
+"""
+一个用来表示"空间"的类，例如observation space，action space。
+"""
 import numpy as np
 
 from rlpyt.spaces.base import Space
@@ -15,7 +18,7 @@ class IntBox(Space):
         self.high = high
         self.shape = shape if shape is not None else ()  # np.ndarray sample
         self.dtype = np.dtype(dtype)
-        assert np.issubdtype(self.dtype, np.integer)
+        assert np.issubdtype(self.dtype, np.integer)  # 保证输入的数据类型必须为整型
         null_value = low if null_value is None else null_value
         assert null_value >= low and null_value < high
         self._null_value = null_value
