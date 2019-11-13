@@ -18,7 +18,9 @@ class AtariMixin:
         """
         为具体的model类(例如AtariDqnModel)实例化提供一些必需的特殊参数。
 
-        :param env_spaces: 一个namedtuple(参考class Env里的EnvSpaces)，包含observation space 和 action space两个属性。
+        :param env_spaces: 一个namedtuple(参考class Env里的EnvSpaces)，包含observation space 和 action space两个属性。这里的
+        env_spaces.observation 和 env_spaces.action，都是 IntBox 类型的对象，因此 env_spaces.observation.shape 就对应 IntBox
+        里的 self.shape，而 env_spaces.action.n 则对应 IntBox.n() 函数的返回值(它用@property修饰使之可以像属性一样调用)。
         :return: 一个dict，其包含创建model类(例如AtariDqnModel)对象所需的特殊参数。
         """
         return dict(image_shape=env_spaces.observation.shape,
