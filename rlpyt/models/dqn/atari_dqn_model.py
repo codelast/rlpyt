@@ -1,4 +1,6 @@
-
+"""
+torch.nn.Module类的子类，在这类中定义神经网络的结构。
+"""
 import torch
 
 from rlpyt.utils.tensor import infer_leading_dims, restore_leading_dims

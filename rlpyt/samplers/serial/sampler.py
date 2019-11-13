@@ -1,3 +1,6 @@
+"""
+这个类抽象到了和具体的environment、agent无关。
+"""
 from rlpyt.samplers.base import BaseSampler
 from rlpyt.samplers.buffer import build_samples_buffer
 from rlpyt.samplers.parallel.cpu.collectors import CpuResetCollector
@@ -35,8 +38,8 @@ class SerialSampler(BaseSampler):
         """
         由于每一个environment的spaces都是一样的(这里是指action space 和 observation space)，因此只需要拿一个environment的实例出来，
         即 envs[0]，再取其spaces，也就代表了每一个environment的spaces。这里的 .spaces 是被作为一个属性来使用，但实际上它是一个函数，在
-        class Env里面，用@property来修饰使之可以用属性的方式调用。总结：envs[0].spaces 得到的是一个namedtuple，其包含两个属性：
-        observation space 和 action space。 
+        class Env里面，用@property来修饰使之可以用属性的方式调用。总结：envs[0].spaces 得到的是一个namedtuple(EnvSpaces)，其包含两个
+        属性：observation space 和 action space。 
         """
         agent.initialize(envs[0].spaces, share_memory=False,
                          global_B=global_B, env_ranks=env_ranks)

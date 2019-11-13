@@ -1,3 +1,6 @@
+"""
+agent的基类。和具体的environment、agent实现无关。
+"""
 import multiprocessing as mp
 
 import torch
@@ -15,9 +18,6 @@ AgentStep = namedarraytuple("AgentStep", ["action", "agent_info"])
 
 
 class BaseAgent:
-    """
-    agent的基类。
-    """
     recurrent = False
     alternating = False
 
@@ -46,12 +46,12 @@ class BaseAgent:
         """
         In this default setup, self.model is treated as the model needed for action selection, so it is the only one
         shared with workers.
-        该函数在sampler类(例如SerialSampler)中会被调用。
+        该函数在sampler类(例如SerialSampler)中的initialize()函数里会被调用。
         这里有点tricky：self.make_env_to_model_kwargs()在某些场景下，调用的不是本类的make_env_to_model_kwargs()函数，而是一个看似
         与本类毫无关联的*Mixin类里的make_env_to_model_kwargs()函数，逻辑是这样的：以AtariDqnAgent类为例，它有两个父类 AtariMixin 和
         DqnAgent，其中，AtariMixin 实现了 make_env_to_model_kwargs 函数，而 DqnAgent 类则继承自本类(BaseAgent)，这样的继承关系会
-        导致 AtariDqnAgent 在sampler中initialize的时候，最终调用的是 AtariMixin.make_env_to_model_kwargs()。我觉得搞得太复杂了，
-        没理解这样设计的意义。
+        导致 AtariDqnAgent 在sampler中initialize的时候，最终调用的是 AtariMixin.make_env_to_model_kwargs()。这样做的意义：请看
+        AtariMixin类的注释。
 
         :param env_spaces: 一个namedtuple，包含observation space 和 action space两个属性。
         :param share_memory: bool，是否使用共享内存。
@@ -70,6 +70,7 @@ class BaseAgent:
     def make_env_to_model_kwargs(self, env_spaces):
         """
         在一些子类以及看似不相关(但实际有间接关联)的*Mixin类中会覆盖这个函数。
+
         :param env_spaces: 一个namedtuple，包含observation space 和 action space两个属性。
         :return: 一个dict。
         """
