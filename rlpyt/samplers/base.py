@@ -46,6 +46,6 @@ class BaseSampler:
     @property
     def batch_size(self):
         """
-        所有environment实例上的所有时间步的数量总和。
+        所有environment实例上的所有时间步的数量总和。参考BatchSpec类的size()函数。
         """
         return self.batch_spec.size  # For logging at least.

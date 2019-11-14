@@ -152,6 +152,7 @@ class MinibatchRlBase(BaseRunner):
     def save_itr_snapshot(self, itr):
         """
         保存指定的某次迭代的快照数据到日志中。所谓快照数据是指模型参数等，保存到日志文件有利于debug问题。
+
         :param itr: 第几次迭代。
         """
         logger.log("saving snapshot...")
@@ -162,6 +163,7 @@ class MinibatchRlBase(BaseRunner):
     def store_diagnostics(self, itr, traj_infos, opt_info):
         """
         更新/保存诊断信息。此函数不写日志，只更新内存中的一些统计数据。
+
         :param itr: 第几次迭代。
         """
         self._cum_completed_trajs += len(traj_infos)
@@ -173,6 +175,7 @@ class MinibatchRlBase(BaseRunner):
     def log_diagnostics(self, itr, traj_infos=None, eval_time=0):
         """
         记录诊断信息(写日志)。
+
         :param itr: 第几次迭代。
         """
         if itr > 0:
@@ -218,8 +221,8 @@ class MinibatchRlBase(BaseRunner):
     def _log_infos(self, traj_infos=None):
         """
         记录trajectory的信息。
-        :param traj_infos:
-        :return:
+
+        :param traj_infos: trajectory的一些统计信息。
         """
         if traj_infos is None:
             traj_infos = self._traj_infos
@@ -270,6 +273,7 @@ class MinibatchRl(MinibatchRlBase):
     def store_diagnostics(self, itr, traj_infos, opt_info):
         """
         更新/保存诊断信息。此函数不写日志，只更新内存中的一些统计数据。
+
         :param itr: 第几次迭代。
         """
         self._new_completed_trajs += len(traj_infos)
@@ -279,6 +283,7 @@ class MinibatchRl(MinibatchRlBase):
     def log_diagnostics(self, itr):
         """
         记录诊断信息。
+
         :param itr: 第几次迭代。
         """
         logger.record_tabular('NewCompletedTrajs', self._new_completed_trajs)
@@ -316,6 +321,7 @@ class MinibatchRlEval(MinibatchRlBase):
     def evaluate_agent(self, itr):
         """
         评估模型。
+
         :param itr: 第几次迭代。
         :return: 一个tuple，包含trajectory的信息以及evaluation所消耗的时间。
         """
@@ -340,6 +346,7 @@ class MinibatchRlEval(MinibatchRlBase):
         """
         [此函数设计得不好，和父类的同名函数签名不一致]
         记录诊断信息。此函数会写日志。
+        
         :param itr: 第几次迭代。
         :param eval_traj_infos:
         :param eval_time:
