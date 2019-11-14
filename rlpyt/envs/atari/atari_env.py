@@ -29,7 +29,7 @@ class AtariTrajInfo(TrajInfo):
 class AtariEnv(Env):
 
     def __init__(self,
-                 game="pong",
+                 game="pong",  # 游戏名
                  frame_skip=4,  # Frames per step (>=1).
                  num_img_obs=4,  # Number of (past) frames in observation (>=1).
                  clip_reward=True,
@@ -38,6 +38,9 @@ class AtariEnv(Env):
                  repeat_action_probability=0.,
                  horizon=27000,  # 在游戏角色没有死的时候，step大于这个值也会被判定为game over
                  ):
+        """
+        environment对象会在Sampler类中的initialize()方法里构造。
+        """
         save__init__args(locals(), underscore=True)  # 非常tricky的做法：把局部变量保存到实例的属性中，之后如果找不到self.xxx的定义就在这里面找
         # ALE，即电玩学习环境(Arcade Learning Environment)，它提供了一个关于Atari 2600游戏的数百个游戏环境的接口
         game_path = atari_py.get_game_path(game)

@@ -99,7 +99,7 @@ class MinibatchRlBase(BaseRunner):
     def get_traj_info_kwargs(self):
         """
         [函数名起得不好，让人迷惑]
-        用于获取算法(Algorithm)实例里设置的某些参数，例如折扣因子(discount factor)。
+        用于获取算法(Algorithm)对象的某些参数，例如折扣因子(discount factor)。
 
         :return: 一个dict，里面只含有折扣因子(discount factor)。
         """
@@ -133,18 +133,19 @@ class MinibatchRlBase(BaseRunner):
         """
         logger.log("Training complete.")
         self.pbar.stop()  # 停止更新进度条
-        self.sampler.shutdown()  # 一些清理工作
+        self.sampler.shutdown()  # Sampler的一些清理工作
 
     def get_itr_snapshot(self, itr):
         """
         获取指定的某次迭代里的一些数据。
+
         :param itr: 当前是第几次迭代
         :return: 一个dict，其包含了指定的某次迭代的数据。
         """
         return dict(
             itr=itr,
             cum_steps=itr * self.sampler.batch_size * self.world_size,
-            agent_state_dict=self.agent.state_dict(),  # 模型的状态，例如模型参数，模型的持久化buffer
+            agent_state_dict=self.agent.state_dict(),  # 模型的状态，例如模型参数、模型的持久化buffer等
             optimizer_state_dict=self.algo.optim_state_dict(),  # optimizer的状态
         )
 
