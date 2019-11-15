@@ -81,7 +81,7 @@ class MinibatchRlBase(BaseRunner):
         if world_size > 1:
             self.agent.data_parallel()
 
-        # 初始化算法(Algorithm)实例
+        # 初始化算法(Algorithm)对象
         self.algo.initialize(
             agent=self.agent,
             n_itr=n_itr,
@@ -346,7 +346,7 @@ class MinibatchRlEval(MinibatchRlBase):
         """
         [此函数设计得不好，和父类的同名函数签名不一致]
         记录诊断信息。此函数会写日志。
-        
+
         :param itr: 第几次迭代。
         :param eval_traj_infos:
         :param eval_time:
