@@ -28,7 +28,7 @@ class RlAlgorithm:
 
     def load_optim_state_dict(self, state_dict):
         """
-        加载优化器对象(Optimizer)的state_dict，它包含了优化器的状态以及被使用的超参数，例如learning rate，momentum等。
+        加载优化器对象(Optimizer)的state_dict，它包含了优化器的状态(例如weight decay)以及被使用的超参数(例如learning rate)。
         """
         self.optimizer.load_state_dict(state_dict)
 

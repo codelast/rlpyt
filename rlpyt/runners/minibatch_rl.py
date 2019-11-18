@@ -145,8 +145,8 @@ class MinibatchRlBase(BaseRunner):
         return dict(
             itr=itr,
             cum_steps=itr * self.sampler.batch_size * self.world_size,
-            agent_state_dict=self.agent.state_dict(),  # 模型的状态，例如模型参数、模型的持久化buffer等
-            optimizer_state_dict=self.algo.optim_state_dict(),  # optimizer的状态
+            agent_state_dict=self.agent.state_dict(),  # model的状态，例如模型参数、模型的持久化buffer等
+            optimizer_state_dict=self.algo.optim_state_dict(),  # optimizer的状态，例如weight decay等
         )
 
     def save_itr_snapshot(self, itr):
@@ -156,7 +156,7 @@ class MinibatchRlBase(BaseRunner):
         :param itr: 第几次迭代。
         """
         logger.log("saving snapshot...")
-        params = self.get_itr_snapshot(itr)  # 获取第iter次迭代的快照数据
+        params = self.get_itr_snapshot(itr)  # 获取第iter次迭代的快照数据，其中包含了model参数等
         logger.save_itr_params(itr, params)  # 保存第iter次迭代的快照数据
         logger.log("saved")
 
@@ -174,7 +174,7 @@ class MinibatchRlBase(BaseRunner):
 
     def log_diagnostics(self, itr, traj_infos=None, eval_time=0):
         """
-        记录诊断信息(写日志)。
+        记录诊断信息(写日志)，会把模型参数等也保存下来。
 
         :param itr: 第几次迭代。
         """
