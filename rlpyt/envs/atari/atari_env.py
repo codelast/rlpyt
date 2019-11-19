@@ -36,7 +36,7 @@ class AtariEnv(Env):
                  episodic_lives=True,
                  max_start_noops=30,
                  repeat_action_probability=0.,
-                 horizon=27000,  # 在游戏角色没有死的时候，step大于这个值也会被判定为game over
+                 horizon=27000,  # 人工随意定的一个值。在游戏角色没有死的时候，step大于这个值也会被判定为game over
                  ):
         """
         environment对象会在Sampler类中的initialize()方法里构造。
