@@ -38,7 +38,12 @@ class EpsilonGreedyAgentMixin:
                 assert global_B % 2 == 0
                 global_B = global_B // 2  # Env pairs will share epsilon.
                 env_ranks = list(set([i // 2 for i in env_ranks]))
+            # torch.ones()返回一个全为1 的张量，参数定义其形状
             self.eps_init = self._eps_init_scalar * torch.ones(len(env_ranks))
+            """
+            torch.logspace(start, end, steps=100, out=None) → Tensor，返回一个1维张量，包含在区间 10^start 和 10^end上以对数刻度
+            均匀间隔的steps个点。 输出1维张量的长度为steps
+            """
             global_eps_final = torch.logspace(
                 torch.log10(torch.tensor(self.eps_final_min)),
                 torch.log10(torch.tensor(self._eps_final_scalar)),
