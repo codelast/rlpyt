@@ -67,6 +67,9 @@ class EpsilonGreedyAgentMixin:
     #         self.sample_epsilon = 1
 
     def set_sample_epsilon_greedy(self, epsilon):
+        """
+        目前无用！
+        """
         self.distribution.set_epsilon(epsilon)
 
     # def set_sample_epsilon_greedy(self, epsilon):
