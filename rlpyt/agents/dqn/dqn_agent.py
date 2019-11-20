@@ -9,6 +9,8 @@ from rlpyt.distributions.epsilon_greedy import EpsilonGreedy
 from rlpyt.models.utils import strip_ddp_state_dict
 from rlpyt.utils.buffer import buffer_to
 from rlpyt.utils.collections import namedarraytuple
+from rlpyt.models.utils import update_state_dict
+
 
 AgentInfo = namedarraytuple("AgentInfo", "q")
 
@@ -96,8 +98,8 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
         target_q = self.target_model(*model_inputs)
         return target_q.cpu()  # 将tensor移动到CPU(内存)
 
-    def update_target(self):
+    def update_target(self, tau=1):
         """
         更新target network，即把main network的参数拷贝到target network上。
         """
-        self.target_model.load_state_dict(strip_ddp_state_dict(self.model.state_dict()))
+        update_state_dict(self.target_model, self.model.state_dict(), tau)

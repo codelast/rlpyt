@@ -24,35 +24,36 @@ class DQN(RlAlgorithm):
     opt_info_fields = tuple(f for f in OptInfo._fields)  # copy
 
     def __init__(
-        self,
-        discount=0.99,
-        batch_size=32,
-        min_steps_learn=int(5e4),
-        delta_clip=1.,
-        replay_size=int(1e6),
-        replay_ratio=8,  # data_consumption / data_generation.
-        target_update_interval=312,  # 312 * 32 = 1e4 env steps.
-        n_step_return=1,
-        learning_rate=2.5e-4,
-        OptimCls=torch.optim.Adam,
-        optim_kwargs=None,
-        initial_optim_state_dict=None,
-        clip_grad_norm=10.,
-        # eps_init=1,  # NOW IN AGENT.
-        # eps_final=0.01,
-        # eps_final_min=None,  # set < eps_final to use vector-valued eps.
-        # eps_eval=0.001,
-        eps_steps=int(1e6),  # STILL IN ALGO (to convert to itr).
-        double_dqn=False,
-        prioritized_replay=False,
-        pri_alpha=0.6,
-        pri_beta_init=0.4,
-        pri_beta_final=1.,
-        pri_beta_steps=int(50e6),
-        default_priority=None,
-        ReplayBufferCls=None,  # Leave None to select by above options.
-        updates_per_sync=1,  # For async mode only.
-    ):
+            self,
+            discount=0.99,
+            batch_size=32,
+            min_steps_learn=int(5e4),
+            delta_clip=1.,
+            replay_size=int(1e6),
+            replay_ratio=8,  # data_consumption / data_generation.
+            target_update_tau=1,
+            target_update_interval=312,  # 312 * 32 = 1e4 env steps.
+            n_step_return=1,
+            learning_rate=2.5e-4,
+            OptimCls=torch.optim.Adam,
+            optim_kwargs=None,
+            initial_optim_state_dict=None,
+            clip_grad_norm=10.,
+            # eps_init=1,  # NOW IN AGENT.
+            # eps_final=0.01,
+            # eps_final_min=None,  # set < eps_final to use vector-valued eps.
+            # eps_eval=0.001,
+            eps_steps=int(1e6),  # STILL IN ALGO (to convert to itr).
+            double_dqn=False,
+            prioritized_replay=False,
+            pri_alpha=0.6,
+            pri_beta_init=0.4,
+            pri_beta_final=1.,
+            pri_beta_steps=int(50e6),
+            default_priority=None,
+            ReplayBufferCls=None,  # Leave None to select by above options.
+            updates_per_sync=1,  # For async mode only.
+            ):
         if optim_kwargs is None:
             optim_kwargs = dict(eps=0.01 / batch_size)
         if default_priority is None:
@@ -155,7 +156,7 @@ class DQN(RlAlgorithm):
             opt_info.tdAbsErr.extend(td_abs_errors[::8].numpy())  # Downsample.
             self.update_counter += 1
             if self.update_counter % self.target_update_interval == 0:
-                self.agent.update_target()
+                self.agent.update_target(self.target_update_tau)
         self.update_itr_hyperparams(itr)
         return opt_info
 

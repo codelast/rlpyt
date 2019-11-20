@@ -30,6 +30,7 @@ class MinibatchRlBase(BaseRunner):
         affinity = dict() if affinity is None else affinity  # CPU亲和性定义
         # 非常tricky的做法：把局部变量保存到实例的属性中。在后面的大量代码中，都会看到很多貌似没有定义过的self.xxx变量，它们就是在这里被定义的
         save__init__args(locals())
+        self.min_itr_learn = getattr(self.algo, 'min_itr_learn', 0)
 
     def startup(self):
         """
@@ -180,7 +181,8 @@ class MinibatchRlBase(BaseRunner):
         """
         if itr > 0:
             self.pbar.stop()  # 停止更新进度条
-        self.save_itr_snapshot(itr)
+        if itr >= self.min_itr_learn - 1:
+            self.save_itr_snapshot(itr)
         new_time = time.time()
         self._cum_time = new_time - self._start_time
         train_time_elapsed = new_time - self._last_time - eval_time
@@ -327,11 +329,16 @@ class MinibatchRlEval(MinibatchRlBase):
         """
         if itr > 0:
             self.pbar.stop()  # 停止进度条
-        logger.log("Evaluating agent...")
-        self.agent.eval_mode(itr)  # Might be agent in sampler. 设置成evaluation模式
-        eval_time = -time.time()  # 当前时间取负值
-        traj_infos = self.sampler.evaluate_agent(itr)  # 真正开始做evaluation的地方
-        eval_time += time.time()  # 经过这么一计算，现在eval_time变成了上一条语句的执行消耗时间
+
+        if itr >= self.min_itr_learn - 1 or itr == 0:
+            logger.log("Evaluating agent...")
+            self.agent.eval_mode(itr)  # Might be agent in sampler.
+            eval_time = -time.time()
+            traj_infos = self.sampler.evaluate_agent(itr)  # 真正开始做evaluation的地方
+            eval_time += time.time()  # 经过这么一计算，现在eval_time变成了上一条语句的执行消耗时间
+        else:
+            traj_infos = []
+            eval_time = 0.0
         logger.log("Evaluation runs complete.")
         return traj_infos, eval_time
 
