@@ -34,7 +34,7 @@ class SerialSampler(BaseSampler):
         B = self.batch_spec.B  # 独立的trajectory的数量，即environment实例的数量。此值>=1
         envs = [self.EnvCls(**self.env_kwargs) for _ in range(B)]  # 初始化每一个environment实例，生成一个list
         global_B = B * world_size  # 这里的概念可能是指复制出来的N个environment实例的数量
-        env_ranks = list(range(rank * B, (rank + 1) * B))
+        env_ranks = list(range(rank * B, (rank + 1) * B))  # size为[environment数量]的一个list
         """
         由于每一个environment的spaces都是一样的(这里是指action space 和 observation space)，因此只需要拿一个environment的实例出来，
         即 envs[0]，再取其spaces，也就代表了每一个environment的spaces。这里的 .spaces 是被作为一个属性来使用，但实际上它是一个函数，在

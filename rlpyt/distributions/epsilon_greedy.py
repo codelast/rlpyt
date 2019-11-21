@@ -41,7 +41,7 @@ class EpsilonGreedy(DiscreteMixin, Distribution):
         :param q: 一个torch.Tensor类型的对象。
         :return: torch.Tensor类型的对象。
         """
-        arg_select = torch.argmax(q, dim=-1)  # 返回指定的维度(dim)上，值最大的那个数的index。-1表示最后一个维度，即等同于dim=1的效果
+        arg_select = torch.argmax(q, dim=-1)  # 返回指定的维度(dim，-1表示最后一个维度)上，值最大的那个数的index
         mask = torch.rand(arg_select.shape) < self._epsilon  # 得到一个bool的矩阵，标识了torch.rand生成的随机数组里的每个元素是比self._epsilon大还是小
         """
         torch.randint()返回均匀分布的[low,high)之间的整数随机值，mask.sum()得到bool矩阵中True元素的个数(假设为x)，因此得到的arg_rand是
