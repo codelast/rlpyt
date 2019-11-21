@@ -64,7 +64,11 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
     @torch.no_grad()
     def step(self, observation, prev_action, prev_reward):
         """
-        在environment中走一步。这个函数在Collector类的collect_batch()函数中会被调用。
+        在environment中走一步。environment类(例如AtariEnv也有一个step()，那个step()和这里的step()的主要区别是：这里的step()根据policy
+        network选取了一个action，而AtariEnv里的step()输入的是已经选取好的action，并且AtariEnv的step()会计算reward，记录一些统计信息等，
+        这里的step()不会去计算reward。
+        入的action，
+        这个函数在Collector类的collect_batch()函数中会被调用。
         这里会发生policy network的前向传播过程(比较耗计算资源的操作)，即根据输入(例如observation)计算下一步要采
         取的action。
 
