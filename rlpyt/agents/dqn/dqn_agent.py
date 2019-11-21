@@ -35,7 +35,6 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
         :param share_memory: 为 True 时使得模型参数可以在多进程间共享，为 False 时不共享。
         :param global_B: 在BatchSpec中，表示独立的trajectory的数量，即environment实例的数量。这里的global_B可能是指所有env的总数
         :param env_ranks: TODO:
-        :return: TODO:
         """
         super().initialize(env_spaces, share_memory, global_B=global_B, env_ranks=env_ranks)
         self.target_model = self.ModelCls(**self.env_model_kwargs, **self.model_kwargs)  # torch.nn.Module的子类

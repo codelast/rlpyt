@@ -49,6 +49,10 @@ class SerialSampler(BaseSampler):
         if traj_info_kwargs:
             for k, v in traj_info_kwargs.items():
                 setattr(self.TrajInfoCls, "_" + k, v)  # Avoid passing at init.
+        """
+        对env_ranks，collector.start_agent()和上面的agent.initialize()都会调用到 EpsilonGreedyAgentMixin.make_vec_eps()，这
+        其实是重复执行了一部分逻辑，所以作者会在collector的构造函数这里加上这句注释：Might get applied redundantly to agent.
+        """
         collector = self.CollectorCls(
             rank=0,
             envs=envs,

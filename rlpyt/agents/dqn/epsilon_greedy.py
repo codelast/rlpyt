@@ -35,7 +35,7 @@ class EpsilonGreedyAgentMixin:
     def make_vec_eps(self, global_B, env_ranks):
         if self.eps_final_min is not None and self.eps_final_min != self._eps_final_scalar:  # vector epsilon.
             if self.alternating:  # In FF case, sampler sets agent.alternating.
-                assert global_B % 2 == 0
+                assert global_B % 2 == 0  # 看rlpyt的论文可以知道，在Alternating模式下environment应该是偶数个，因此global_B也是偶数
                 global_B = global_B // 2  # Env pairs will share epsilon.
                 env_ranks = list(set([i // 2 for i in env_ranks]))
             # torch.ones()返回一个全为1 的张量，参数定义其形状
@@ -48,8 +48,8 @@ class EpsilonGreedyAgentMixin:
                 torch.log10(torch.tensor(self.eps_final_min)),
                 torch.log10(torch.tensor(self._eps_final_scalar)),
                 global_B)
-            self.eps_final = global_eps_final[env_ranks]
-        self.eps_sample = self.eps_init
+            self.eps_final = global_eps_final[env_ranks]  # 从tensor里取出env_ranks这个list定义的index的元素，得到一个新的tensor
+        self.eps_sample = self.eps_init  # 有可能是一个scalar，也有可能是一个tensor
 
     def set_epsilon_itr_min_max(self, eps_itr_min, eps_itr_max):
         # Beginning and end of linear ramp down of epsilon.
