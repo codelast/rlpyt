@@ -10,7 +10,7 @@ class EpsilonGreedy(DiscreteMixin, Distribution):
 
     def __init__(self, epsilon=1, **kwargs):
         super().__init__(**kwargs)
-        self._epsilon = epsilon  # 有可能是一个scalar（例如一个(0, 1)之间的较小的数），也有可能应该是一个tensor
+        self._epsilon = epsilon  # 有可能是一个scalar（例如一个(0, 1)之间的较小的数），也有可能是一个tensor
 
     def sample(self, q):
         """
