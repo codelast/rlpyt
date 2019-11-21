@@ -336,7 +336,7 @@ def save_itr_params(itr, params):
             return
         else:
             raise NotImplementedError
-        torch.save(params, file_name)
+        torch.save(params, file_name)  # 模型参数保存到文件
 
 
 def log_parameters(log_file, args, classes):
