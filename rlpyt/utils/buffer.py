@@ -49,8 +49,8 @@ def torchify_buffer(buffer_):
         return torch.from_numpy(buffer_)
     elif isinstance(buffer_, torch.Tensor):
         return buffer_
-    contents = tuple(torchify_buffer(b) for b in buffer_)
-    if type(buffer_) is tuple:  # tuple, namedtuple instantiate differently.
+    contents = tuple(torchify_buffer(b) for b in buffer_)  # 递归调用，把 buffer_ 里的每一个元素都变成一个tensor，再组成一个tuple
+    if type(buffer_) is tuple:  # tuple, namedtuple instantiate differently. 注意：namedtuple，namedarraytuple判断结果为False
         return contents
     return type(buffer_)(*contents)
 

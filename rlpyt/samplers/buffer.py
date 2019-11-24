@@ -14,16 +14,16 @@ def build_samples_buffer(agent, env, batch_spec, bootstrap_value=False,
     affect settings in master before forking workers (e.g. torch num_threads
     (MKL) may be set at first forward computation.)"""
     if examples is None:
-        if subprocess:
-            mgr = mp.Manager()
-            examples = mgr.dict()  # Examples pickled back to master.
+        if subprocess:  # 创建子进程
+            mgr = mp.Manager()  # Manager模块用于资源共享
+            examples = mgr.dict()  # Examples pickled back to master. 可以被子进程共享的全局变量
             w = mp.Process(target=get_example_outputs,
-                           args=(agent, env, examples, subprocess))
+                           args=(agent, env, examples, subprocess))  # 创建worker进程
             w.start()
             w.join()
         else:
             examples = dict()
-            get_example_outputs(agent, env, examples)
+            get_example_outputs(agent, env, examples)  # examples会在该函数中被更新，所以没有返回值
 
     T, B = batch_spec
     all_action = buffer_from_example(examples["action"], (T + 1, B), agent_shared)
