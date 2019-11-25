@@ -58,6 +58,7 @@ def torchify_buffer(buffer_):
 def numpify_buffer(buffer_):
     """
     把输入数据转换成numpy array格式。
+
     :param buffer_: 输入数据，可能是torch.Tensor，numpy array等格式。
     :return: 转换得到的numpy array。
     """
@@ -87,10 +88,24 @@ def buffer_to(buffer_, device=None):
 
 
 def buffer_method(buffer_, method_name, *args, **kwargs):
+    """
+    把输入输入数据(buffer_)用指定函数(method_name)处理之后再组合成一定形式的数据。
+
+    :param buffer_: 待转换的输入数据。
+    :param method_name: 对buffer_或其子项调用的函数名，例如"copy"
+    :param args: 为method_name提供的动态参数。
+    :param kwargs: 为method_name提供的动态参数。
+    :return: 转换后的数据。
+    """
     if buffer_ is None:
         return
-    if isinstance(buffer_, (torch.Tensor, np.ndarray)):
-        return getattr(buffer_, method_name)(*args, **kwargs)
+    if isinstance(buffer_, (torch.Tensor, np.ndarray)):  # buffer_的类型 是 torch.Tensor 或 np.ndarray 中的任何一个
+        return getattr(buffer_, method_name)(*args, **kwargs)  # 执行 buffer_.method_name(*args, **kwargs)
+    """
+    当buffer_的类型不是 torch.Tensor 也不是 np.ndarray 的时候（例如 namedarraytuple），则会递归地把其每一个item都转成
+    item.method_name(*args, **kwargs)的形式，再组合成一个tuple。具体转成了什么数据取决于 method_name 是什么，例如，假设 method_name
+    为 "copy"，则会把每个item都进行复制，再组成一个tuple
+    """
     contents = tuple(buffer_method(b, method_name, *args, **kwargs) for b in buffer_)
     if type(buffer_) is tuple:
         return contents

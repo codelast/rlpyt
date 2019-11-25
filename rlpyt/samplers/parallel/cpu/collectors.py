@@ -41,7 +41,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                 # Environment inputs and outputs are numpy arrays.
                 o, r, d, env_info = env.step(action[b])  # 计算reward，统计environment信息等
                 traj_infos[b].step(observation[b], action[b], r, d, agent_info[b], env_info)  # 统计trajectory的信息
-                # EnvInfo里traj_done属性为True的情况，对游戏来说不一定是玩到赢了一关，也有可能是游戏玩得差一下子就game over了
+                # EnvInfo里traj_done属性为True的情况，对游戏来说不一定是玩到赢了一关，也有可能是游戏玩得差game over了
                 if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))  # 传入的observation参数其实没有用
                     traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
@@ -65,13 +65,13 @@ class CpuResetCollector(DecorrelatingStartCollector):
         return AgentInputs(observation, action, reward), traj_infos, completed_infos
 
 
-class CpuWaitResetCollector(DecorrelatingStartCollector) :
+class CpuWaitResetCollector(DecorrelatingStartCollector):
     mid_batch_reset = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.need_reset = np.zeros(len(self.envs), dtype=np.bool)
-        self.done = np.zeros(len(self.envs), dtype=np.bool)
+        self.done = np.zeros(len(self.envs), dtype=np.bool)  # 所有environment的done标志，初始化为"not done"
         self.temp_observation = buffer_method(
             self.samples_np.env.observation[0, :len(self.envs)], "copy")
 
@@ -81,6 +81,10 @@ class CpuWaitResetCollector(DecorrelatingStartCollector) :
         agent_buf, env_buf = self.samples_np.agent, self.samples_np.env
         completed_infos = list()
         observation, action, reward = agent_inputs
+        """
+        以array形式输出满足条件(即非0)元素，即已经done的env的indices。最后的[0]并不是表示取所有indices里的第1个元素，而是恰恰是指取所有
+        done的indices，因为np.where()返回的是一个array，里面只有一个元素，它是一个array，保存的就是所有indices。
+        """
         b = np.where(self.done)[0]
         observation[b] = self.temp_observation[b]
         self.done[:] = False  # Did resets between batches.
@@ -103,13 +107,13 @@ class CpuWaitResetCollector(DecorrelatingStartCollector) :
                     continue
                 # Environment inputs and outputs are numpy arrays.
                 o, r, d, env_info = env.step(action[b])
-                traj_infos[b].step(observation[b], action[b], r, d, agent_info[b],
-                                   env_info)
+                traj_infos[b].step(observation[b], action[b], r, d, agent_info[b], env_info)
+                # EnvInfo里traj_done属性为True的情况，对游戏来说不一定是玩到赢了一关，也有可能是游戏玩得差game over了
                 if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()
                     self.need_reset[b] = True
-                if d:
+                if d:  # done标志
                     self.temp_observation[b] = o
                     o = 0  # Record blank.
                 observation[b] = o

@@ -23,7 +23,7 @@ def build_samples_buffer(agent, env, batch_spec, bootstrap_value=False,
             w.join()
         else:
             examples = dict()
-            get_example_outputs(agent, env, examples)  # examples会在该函数中被更新，所以没有返回值
+            get_example_outputs(agent, env, examples)  # examples会在get_example_outputs()函数中被更新，所以没有返回值
 
     T, B = batch_spec
     all_action = buffer_from_example(examples["action"], (T + 1, B), agent_shared)

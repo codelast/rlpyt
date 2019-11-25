@@ -59,7 +59,7 @@ class DQN(RlAlgorithm):
         if default_priority is None:
             default_priority = delta_clip
         self._batch_size = batch_size
-        del batch_size  # Property.
+        del batch_size  # Property. 在类函数中用到的 self.batch_size 其实是父类RlAlgorithm里通过@property修饰的batch_size()函数
         save__init__args(locals())
         self.update_counter = 0
 
