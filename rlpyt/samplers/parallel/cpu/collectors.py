@@ -66,6 +66,10 @@ class CpuResetCollector(DecorrelatingStartCollector):
 
 
 class CpuWaitResetCollector(DecorrelatingStartCollector):
+    """
+    这个类和CpuResetCollector的最大区别就是，该类实现了父类的reset_if_needed()函数，在trajectory "done"的时候(例如游戏通关或者挂了)，
+    (由调用者触发)会重置该trajectory对应的若干种数据。
+    """
     mid_batch_reset = False
 
     def __init__(self, *args, **kwargs):
@@ -112,7 +116,7 @@ class CpuWaitResetCollector(DecorrelatingStartCollector):
                 if getattr(env_info, "traj_done", d):
                     completed_infos.append(traj_infos[b].terminate(o))
                     traj_infos[b] = self.TrajInfoCls()
-                    self.need_reset[b] = True
+                    self.need_reset[b] = True  # 这里设置的这个标志，在后面的reset_if_needed()函数中会根据这个标志来重置若干种数据
                 if d:  # done标志
                     self.temp_observation[b] = o
                     o = 0  # Record blank.
@@ -134,11 +138,11 @@ class CpuWaitResetCollector(DecorrelatingStartCollector):
         return AgentInputs(observation, action, reward), traj_infos, completed_infos
 
     def reset_if_needed(self, agent_inputs):
-        for b in np.where(self.need_reset)[0]:
+        for b in np.where(self.need_reset)[0]:  # self.need_reset在collect_batch()的时候会被更新，调用者也是先调用collect_batch()
             agent_inputs[b] = 0
             agent_inputs.observation[b] = self.envs[b].reset()
-            self.agent.reset_one(idx=b)
-        self.need_reset[:] = False
+            self.agent.reset_one(idx=b)  # 只对 RecurrentAgentMixin 有用
+        self.need_reset[:] = False  # 重置完数据之后，把标志设置为"不需要重置"，从而在下一次collect_batch()的时候，又会设置正确的标志
 
 
 class CpuEvalCollector(BaseEvalCollector):

@@ -101,7 +101,7 @@ class SerialSampler(BaseSampler):
         # self.samples_np[:] = 0  # Unnecessary and may take time.
         agent_inputs, traj_infos, completed_infos = self.collector.collect_batch(
             self.agent_inputs, self.traj_infos, itr)  # 采样第itr次
-        self.collector.reset_if_needed(agent_inputs)
+        self.collector.reset_if_needed(agent_inputs)  # 对默认的CpuResetCollector来说这句没用，因为它和父类都没有实现这个函数
         # 用每一次collect_batch()得到的新数据替换掉旧数据，下一次collect_batch()的时候就是在新数据的基础上进行的step
         self.agent_inputs = agent_inputs
         self.traj_infos = traj_infos
