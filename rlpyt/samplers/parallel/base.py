@@ -146,6 +146,11 @@ class ParallelSamplerBase(BaseSampler):
         return examples
 
     def _build_parallel_ctrl(self, n_worker):
+        """
+        multiprocessing.RawValue：不存在lock的多进程间共享值。
+        multiprocessing.Barrier：一种简单的同步原语，用于固定数目的进程相互等待。当所有进程都调用wait以后，所有进程会同时开始执行。
+        multiprocessing.Queue：用于多进程间数据传递的消息队列。
+        """
         self.ctrl = AttrDict(
             quit=mp.RawValue(ctypes.c_bool, False),
             barrier_in=mp.Barrier(n_worker + 1),
