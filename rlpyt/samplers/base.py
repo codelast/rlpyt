@@ -28,7 +28,6 @@ class BaseSampler:
         eval_max_trajectories = (None if eval_max_trajectories is None else int(eval_max_trajectories))
         save__init__args(locals())  # 非常tricky的做法：把局部变量保存到实例的属性中，之后如果找不到self.xxx的定义就在这里面找
         self.batch_spec = BatchSpec(batch_T, batch_B)  # 保存batch的信息，包含：时间步的数量，以及environment实例的数量
-        # 在SerialSampler初始化时，CollectorCls=CpuResetCollector，且 CpuResetCollector 的 mid_batch_reset 为True
         self.mid_batch_reset = CollectorCls.mid_batch_reset
 
     def initialize(self, *args, **kwargs):
