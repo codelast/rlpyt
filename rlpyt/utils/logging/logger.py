@@ -436,14 +436,23 @@ def log_variant(log_file, variant_data):
 
 
 def record_tabular_misc_stat(key, values, placement='back'):
-    if placement == 'front':
+    """
+    计算并记录[可计算某些统计值](例如，平均值、标准差等)的模型指标。
+    由于多个模型指标都会有平均值、标准差等数据，为了简化代码，这里采用了拼接模型指标名称的做法，例如在evaluation日志里的"lossAverage"，
+    “gradNormAverage”之类的名称都是拼出来的而不是直接写死。
+
+    :param key: 指标名的后缀或前缀。
+    :param values: 指标的数值。
+    :param placement: 把 key 作为指标名的后缀还是前缀。
+    """
+    if placement == 'front':  # 把输入的 key 作为指标名的[后缀]
         prefix = ""
         suffix = key
     else:
         prefix = key
         suffix = ""
     if len(values) > 0:
-        record_tabular(prefix + "Average" + suffix, np.average(values))
+        record_tabular(prefix + "Average" + suffix, np.average(values))  # 拼起来的名字类似于"lossAverage"
         record_tabular(prefix + "Std" + suffix, np.std(values))
         record_tabular(prefix + "Median" + suffix, np.median(values))
         record_tabular(prefix + "Min" + suffix, np.min(values))
