@@ -122,7 +122,7 @@ class MinibatchRlBase(BaseRunner):
         """
         初始化日志记录相关的参数。
         """
-        self._opt_infos = {k: list() for k in self.algo.opt_info_fields}
+        self._opt_infos = {k: list() for k in self.algo.opt_info_fields}  # k：和具体算法相关的一些指标名称，例如loss，gradNorm
         self._start_time = self._last_time = time.time()
         self._cum_time = 0.
         self._cum_completed_trajs = 0
@@ -233,10 +233,10 @@ class MinibatchRlBase(BaseRunner):
                 if not k.startswith("_"):
                     logger.record_tabular_misc_stat(k, [info[k] for info in traj_infos])
 
-        if self._opt_infos:
+        if self._opt_infos:  # 和算法相关的一些统计指标，例如对DQN来说，就是dqn.py定义的OptInfo里的那些指标
             for k, v in self._opt_infos.items():
-                logger.record_tabular_misc_stat(k, v)
-        self._opt_infos = {k: list() for k in self._opt_infos}  # (reset)
+                logger.record_tabular_misc_stat(k, v)  # 计算并记录统计指标
+        self._opt_infos = {k: list() for k in self._opt_infos}  # (reset) 各指标数据清零
 
 
 class MinibatchRl(MinibatchRlBase):
