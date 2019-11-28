@@ -33,6 +33,9 @@ class ParallelSamplerBase(BaseSampler):
             rank=0,
             worker_process=None,
             ):
+        """
+        initialize()函数在runner类(例如MinibatchRlBase)中会被调用。
+        """
         n_envs_list = self._get_n_envs_list(affinity=affinity)
         self.n_worker = n_worker = len(n_envs_list)
         B = self.batch_spec.B
@@ -47,7 +50,7 @@ class ParallelSamplerBase(BaseSampler):
             logger.log(f"Total parallel evaluation envs: {eval_n_envs}.")
             self.eval_max_T = eval_max_T = int(self.eval_max_steps // eval_n_envs)
 
-        env = self.EnvCls(**self.env_kwargs)
+        env = self.EnvCls(**self.env_kwargs)  # 实例化environment，参数env_kwargs是外部传入父类BaseSampler的
         self._agent_init(agent, env, global_B=global_B,
             env_ranks=env_ranks)
         examples = self._build_buffers(env, bootstrap_value)

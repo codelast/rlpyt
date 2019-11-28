@@ -355,8 +355,8 @@ class MinibatchRlEval(MinibatchRlBase):
         记录诊断信息。此函数会写日志。
 
         :param itr: 第几次迭代。
-        :param eval_traj_infos:
-        :param eval_time:
+        :param eval_traj_infos: 做evaluation的时候在trajectory中step产生的统计信息，例如非0的reward值等。
+        :param eval_time: 完成一次evaluation消耗的时间(秒)。
         :return:
         """
         if not eval_traj_infos:
