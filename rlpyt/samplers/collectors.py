@@ -100,7 +100,7 @@ class DecorrelatingStartCollector(BaseCollector):
         :return 一个 namedarraytuple，包含3个元素(observation，action，reward)，每个元素又分别是一个list；以及trajectory的一些统计
         信息(TrajInfo类对象组成的一个list)。
         """
-        traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]
+        traj_infos = [self.TrajInfoCls() for _ in range(len(self.envs))]  # 每一个environment都对应一个TrajInfo对象
         observations = list()
         for env in self.envs:  # self.envs是一个environment的list，它是在sampler类(例如SerialSampler)里面实例化的
             observations.append(env.reset())
