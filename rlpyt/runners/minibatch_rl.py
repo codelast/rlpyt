@@ -36,20 +36,20 @@ class MinibatchRlBase(BaseRunner):
         """
         一些初始化工作。
         """
-        p = psutil.Process()
+        p = psutil.Process()  # 获取当前进程的信息
 
         # 设置CPU亲和性(MacOS不支持)
         try:
             if self.affinity.get("master_cpus", None) is not None and self.affinity.get("set_affinity", True):
                 p.cpu_affinity(self.affinity["master_cpus"])
-            cpu_affin = p.cpu_affinity()
+            cpu_affin = p.cpu_affinity()  # set了之后再取出来
         except AttributeError:
             cpu_affin = "UNAVAILABLE MacOS"
         logger.log(f"Runner {getattr(self, 'rank', '')} master CPU affinity: {cpu_affin}.")
 
         # 设置线程数
         if self.affinity.get("master_torch_threads", None) is not None:
-            torch.set_num_threads(self.affinity["master_torch_threads"])  # 设置用于并行化CPU操作的OpenMP线程数
+            torch.set_num_threads(self.affinity["master_torch_threads"])  # 设置CPU并发执行的线程数
         logger.log(f"Runner {getattr(self, 'rank', '')} master Torch threads: {torch.get_num_threads()}.")
 
         # 设置随机数种子
@@ -222,7 +222,7 @@ class MinibatchRlBase(BaseRunner):
 
     def _log_infos(self, traj_infos=None):
         """
-        记录trajectory的信息。
+        记录和trajectory相关的统计信息，以及和具体算法相关的统计信息。
 
         :param traj_infos: trajectory的一些统计信息。
         """
