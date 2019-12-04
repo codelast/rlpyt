@@ -205,7 +205,7 @@ class MinibatchRlBase(BaseRunner):
         logger.record_tabular('Iteration', itr)
         logger.record_tabular('CumTime (s)', self._cum_time)
         logger.record_tabular('CumSteps', cum_steps)
-        logger.record_tabular('CumCompletedTrajs', self._cum_completed_trajs)
+        logger.record_tabular('CumCompletedTrajs', self._cum_completed_trajs)  # 只对那些标识了"traj_done"的有效
         logger.record_tabular('CumUpdates', self.algo.update_counter)
         logger.record_tabular('StepsPerSecond', samples_per_second)
         logger.record_tabular('UpdatesPerSecond', updates_per_second)

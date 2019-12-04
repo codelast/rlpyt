@@ -96,7 +96,7 @@ class SerialSampler(BaseSampler):
         采样一批数据。这个函数会在Runner类的子类(例如MinibatchRlEval)中被调用。
 
         :param itr: 第几次迭代
-        :return: TODO
+        :return: 采集得到的一批PyTorch Tensor格式的samples，以及采样时走到trajectory末尾的时候对应的那些TrajInfo信息
         """
         # self.samples_np[:] = 0  # Unnecessary and may take time.
         agent_inputs, traj_infos, completed_infos = self.collector.collect_batch(

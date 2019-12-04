@@ -34,7 +34,7 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
         :param env_spaces: 参考 Env.spaces()，类型为 EnvSpaces 这样一个 namedtuple，包含observation space 和 action space两个属性。
         :param share_memory: 为 True 时使得模型参数可以在多进程间共享，为 False 时不共享。
         :param global_B: 在BatchSpec中，表示独立的trajectory的数量，即environment实例的数量。这里的global_B可能是指所有env的总数
-        :param env_ranks: TODO:
+        :param env_ranks: 其含义参考我写的文章 https://www.codelast.com/?p=10932
         """
         super().initialize(env_spaces, share_memory, global_B=global_B, env_ranks=env_ranks)
         self.target_model = self.ModelCls(**self.env_model_kwargs, **self.model_kwargs)  # torch.nn.Module的子类

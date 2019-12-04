@@ -53,7 +53,7 @@ class TrajInfo(AttrDict):
     def step(self, observation, action, reward, done, agent_info, env_info):
         self.Length += 1
         self.Return += reward
-        self.NonzeroRewards += reward != 0
+        self.NonzeroRewards += reward != 0  # 当reward不为0的时候这个指标会+1，注意：当reward为负的时候也会+1
         self.DiscountedReturn += self._cur_discount * reward
         self._cur_discount *= self._discount
 

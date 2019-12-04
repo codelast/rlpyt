@@ -20,7 +20,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
         这里面会发生推断action的过程(NN的前向传播)。
         整个过程中，会发生几种step(步进)事件 ：在agent中step()，在environment中step()，在trajectory中step()。
 
-        :param agent_inputs:
+        :param agent_inputs: 上一次收集到的数据，类型为AgentInputs(一个namedarraytuple)，包含observation, action, reward的信息。
         :param traj_infos: TrajInfo类对象组成的一个list，包含trajectory的一些统计信息。
         :param itr: 第几次迭代。
         :return: AgentInputs, list(TrajInfo对象), list(TrajInfo对象)
@@ -32,6 +32,9 @@ class CpuResetCollector(DecorrelatingStartCollector):
         agent_buf.prev_action[0] = action  # Leading prev_action.
         env_buf.prev_reward[0] = reward
         self.agent.sample_mode(itr)
+        """
+        下面这段代码有两层loop，第一层是对人为指定的time step进行loop，第二层是对所有environment进行loop，
+        """
         for t in range(self.batch_T):  # batch_T：在采集数据的时候，每个循环(也就是这里)走多少个time step
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
@@ -42,7 +45,7 @@ class CpuResetCollector(DecorrelatingStartCollector):
                 o, r, d, env_info = env.step(action[b])  # 计算reward，统计environment信息等
                 traj_infos[b].step(observation[b], action[b], r, d, agent_info[b], env_info)  # 统计trajectory的信息
                 # EnvInfo里traj_done属性为True的情况，对游戏来说不一定是玩到赢了一关，也有可能是游戏玩得差game over了
-                if getattr(env_info, "traj_done", d):
+                if getattr(env_info, "traj_done", d):  # 在environment里step()的时候会记录traj_done信息(是否走到了trajectory尽头)
                     completed_infos.append(traj_infos[b].terminate(o))  # 传入的observation参数其实没有用
                     traj_infos[b] = self.TrajInfoCls()  # TrajInfo类的对象
                     o = env.reset()
