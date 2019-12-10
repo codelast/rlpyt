@@ -33,9 +33,11 @@ class CpuResetCollector(DecorrelatingStartCollector):
         env_buf.prev_reward[0] = reward
         self.agent.sample_mode(itr)
         """
-        下面这段代码有两层loop，第一层是对人为指定的time step进行loop，第二层是对所有environment进行loop，
+        下面这段代码有两层loop，第一层是对人为指定的time step进行loop，第二层是对所有environment进行loop，最后的效果就是每个environment
+        走time step步。
+        # TODO:
         """
-        for t in range(self.batch_T):  # batch_T：在采集数据的时候，每个循环(也就是这里)走多少个time step
+        for t in range(self.batch_T):  # batch_T：在采集数据的时候，每个environment走多少个time step
             env_buf.observation[t] = observation
             # Agent inputs and outputs are torch tensors.
             act_pyt, agent_info = self.agent.step(obs_pyt, act_pyt, rew_pyt)  # 根据输入选择一个action，策略网络的前向传播过程在这里发生
