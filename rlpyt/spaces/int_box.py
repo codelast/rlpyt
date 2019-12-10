@@ -24,6 +24,11 @@ class IntBox(Space):
         self._null_value = null_value
 
     def sample(self):
+        """
+        随机选择action space内的一个index(并非得到实际的action)。
+        np.random.randint()函数的size参数表示输出数据的shape，当size为()或None时，表示输出一个标量值。
+        更详细的说明可参考DecorrelatingStartCollector.start_envs()函数里的注释。
+        """
         return np.random.randint(low=self.low, high=self.high, size=self.shape, dtype=self.dtype)
 
     def null_value(self):
