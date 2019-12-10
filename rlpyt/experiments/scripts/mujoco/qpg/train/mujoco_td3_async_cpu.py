@@ -1,20 +1,15 @@
-
 import sys
 
-from rlpyt.utils.launching.affinity import affinity_from_code
-# from rlpyt.samplers.serial_sampler import SerialSampler
-from rlpyt.samplers.async_.async_cpu_sampler import AsyncCpuSampler
-# from rlpyt.samplers.cpu.collectors import ResetCollector
-from rlpyt.samplers.async_.collectors import DbCpuResetCollector
-from rlpyt.envs.gym import make as gym_make
-from rlpyt.algos.qpg.td3 import TD3
 from rlpyt.agents.qpg.td3_agent import Td3Agent
-# from rlpyt.runners.minibatch_rl_eval import MinibatchRlEval
-from rlpyt.runners.async_rl import AsyncRlEval
-from rlpyt.utils.logging.context import logger_context
-from rlpyt.utils.launching.variant import load_variant, update_config
-
+from rlpyt.algos.qpg.td3 import TD3
+from rlpyt.envs.gym import make as gym_make
 from rlpyt.experiments.configs.mujoco.qpg.mujoco_td3 import configs
+from rlpyt.runners.async_rl import AsyncRlEval
+from rlpyt.samplers.async_.collectors import DbCpuResetCollector
+from rlpyt.samplers.async_.cpu_sampler import AsyncCpuSampler
+from rlpyt.utils.launching.affinity import affinity_from_code
+from rlpyt.utils.launching.variant import load_variant, update_config
+from rlpyt.utils.logging.context import logger_context
 
 
 def build_and_train(slot_affinity_code, log_dir, run_ID, config_key):

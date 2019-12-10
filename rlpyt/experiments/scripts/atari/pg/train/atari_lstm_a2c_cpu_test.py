@@ -1,17 +1,15 @@
-
 import sys
 
-from rlpyt.utils.launching.affinity import affinity_from_code
-from rlpyt.samplers.cpu.parallel_sampler import CpuParallelSampler
 from rlpyt.samplers.cpu.episodic_lives_collectors import EpisodicLivesWaitResetCollector
-from rlpyt.envs.atari.atari_env import AtariEnv
-from rlpyt.algos.policy_gradient.a2c import A2C
-from rlpyt.agents.policy_gradient.atari.atari_lstm_agent import AtariLstmAgent
-from rlpyt.runners.minibatch_rl import MinibatchRl
-from rlpyt.utils.logging.context import logger_context
-from rlpyt.utils.launching.variant import load_variant, update_config
 
+from rlpyt.agents.pg.atari import AtariLstmAgent
+from rlpyt.algos.pg.a2c import A2C
+from rlpyt.envs.atari.atari_env import AtariEnv
 from rlpyt.experiments.configs.atari.pg.atari_lstm_a2c import configs
+from rlpyt.runners.minibatch_rl import MinibatchRl
+from rlpyt.samplers.parallel.cpu.sampler import CpuSampler
+from rlpyt.utils.launching.affinity import affinity_from_code
+from rlpyt.utils.logging.context import logger_context
 
 
 def build_and_train(slot_affinity_code, log_dir, run_ID, config_key):
@@ -20,7 +18,7 @@ def build_and_train(slot_affinity_code, log_dir, run_ID, config_key):
     # variant = load_variant(log_dir)
     # config = update_config(config, variant)
 
-    sampler = CpuParallelSampler(
+    sampler = CpuSampler(
         EnvCls=AtariEnv,
         env_kwargs=config["env"],
         CollectorCls=EpisodicLivesWaitResetCollector,

@@ -2,7 +2,7 @@
 import sys
 
 from rlpyt.utils.launching.affinity import affinity_from_code
-from rlpyt.samplers.gpu.parallel_sampler import GpuSampler
+from rlpyt.samplers.parallel.gpu.sampler import GpuSampler
 from rlpyt.samplers.gpu.collectors import ResetCollector
 from rlpyt.envs.gym import make as gym_make
 from rlpyt.algos.pg.ppo import PPO

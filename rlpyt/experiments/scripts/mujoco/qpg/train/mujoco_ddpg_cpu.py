@@ -1,17 +1,16 @@
-
 import sys
 
-from rlpyt.utils.launching.affinity import affinity_from_code
-from rlpyt.samplers.cpu.parallel_sampler import CpuParallelSampler
-from rlpyt.samplers.cpu.collectors import ResetCollector
-from rlpyt.envs.gym import make as gym_make
-from rlpyt.algos.qpg.ddpg import DDPG
-from rlpyt.agents.qpg.ddpg_agent import DdpgAgent
-from rlpyt.runners.minibatch_rl import MinibatchRl
-from rlpyt.utils.logging.context import logger_context
-from rlpyt.utils.launching.variant import load_variant, update_config
-
 from rlpyt.experiments.configs.mujoco.qpg.mujoco_a2c import configs
+
+from rlpyt.agents.qpg.ddpg_agent import DdpgAgent
+from rlpyt.algos.qpg.ddpg import DDPG
+from rlpyt.envs.gym import make as gym_make
+from rlpyt.runners.minibatch_rl import MinibatchRl
+from rlpyt.samplers.parallel.cpu.collectors import CpuResetCollector
+from rlpyt.samplers.parallel.cpu.sampler import CpuSampler
+from rlpyt.utils.launching.affinity import affinity_from_code
+from rlpyt.utils.launching.variant import load_variant, update_config
+from rlpyt.utils.logging.context import logger_context
 
 
 def build_and_train(slot_affinity_code, log_dir, run_ID, config_key):
@@ -20,10 +19,10 @@ def build_and_train(slot_affinity_code, log_dir, run_ID, config_key):
     variant = load_variant(log_dir)
     config = update_config(config, variant)
 
-    sampler = CpuParallelSampler(
+    sampler = CpuSampler(
         EnvCls=gym_make,
         env_kwargs=config["env"],
-        CollectorCls=ResetCollector,
+        CollectorCls=CpuResetCollector,
         **config["sampler"]
     )
     algo = DDPG(optim_kwargs=config["optim"], **config["algo"])
