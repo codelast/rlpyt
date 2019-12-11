@@ -32,20 +32,30 @@ class IntBox(Space):
         return np.random.randint(low=self.low, high=self.high, size=self.shape, dtype=self.dtype)
 
     def null_value(self):
+        """
+        把self.shape这个形状的矩阵里的所有元素set成null_value定义的值。
+        """
         null = np.zeros(self.shape, dtype=self.dtype)
+        # _null_value肯定不为None，因为__init__的时候已经保证了这一点。在没有传入null_value参数的时候，_null_value是一个标量值
         if self._null_value is not None:
             try:
-                null[:] = self._null_value
+                null[:] = self._null_value  # null这个矩阵的所有元素被set成同样的标量值
             except IndexError:
                 null.fill(self._null_value)
         return null
 
     @property
     def bounds(self):
+        """
+        获取space的边界。
+        """
         return self.low, self.high
 
     @property
     def n(self):
+        """
+        获取space的范围。
+        """
         return self.high - self.low
 
     def __repr__(self):
