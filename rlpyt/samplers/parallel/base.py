@@ -121,6 +121,15 @@ class ParallelSamplerBase(BaseSampler):
     ######################################
 
     def _get_n_envs_list(self, affinity=None, n_worker=None, B=None):
+        """
+        根据environment实例的数量(所谓的"B")，以及用户设定的用于采样的worker的数量(n_worker)，来计算得到一个list，这个list的元素的总数，
+        就是最终的worker的数量；而这个list里的每个元素的值，分别是每个worker承载的environment实例的数量。
+
+        :param affinity: 一个字典(dict)，包含硬件亲和性定义。
+        :param n_worker: 用户设定的用于采样的worker的数量。
+        :param B: environment实例的数量。
+        :return 一个list，其含义如上所述。
+        """
         B = self.batch_spec.B if B is None else B  # 参考BatchSpec类，可以认为B是environment实例的数量
         n_worker = len(affinity["workers_cpus"]) if n_worker is None else n_worker  # worker的数量(不超过物理CPU数否则在别处报错)
         """
@@ -133,6 +142,9 @@ class ParallelSamplerBase(BaseSampler):
                 "increase sampler's `batch_B`.")
             n_worker = B
         n_envs_list = [B // n_worker] * n_worker
+        """
+        当environment实例的数量不是worker数量的整数倍时，每个worker被分配到的environment实例的数量是不均等的。
+        """
         if not B % n_worker == 0:
             logger.log("WARNING: unequal number of envs per process, from "
                 f"batch_B {self.batch_spec.B} and n_worker {n_worker} "
