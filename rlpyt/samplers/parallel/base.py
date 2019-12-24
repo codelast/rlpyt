@@ -46,7 +46,7 @@ class ParallelSamplerBase(BaseSampler):
 
         if self.eval_n_envs > 0:
             self.eval_n_envs_per = max(1, self.eval_n_envs // n_worker)
-            self.eval_n_envs = eval_n_envs = self.eval_n_envs_per * n_worker
+            self.eval_n_envs = eval_n_envs = self.eval_n_envs_per * n_worker  # 保证至少有"worker数量"个eval environment实例
             logger.log(f"Total parallel evaluation envs: {eval_n_envs}.")
             self.eval_max_T = eval_max_T = int(self.eval_max_steps // eval_n_envs)
 
@@ -121,8 +121,12 @@ class ParallelSamplerBase(BaseSampler):
     ######################################
 
     def _get_n_envs_list(self, affinity=None, n_worker=None, B=None):
-        B = self.batch_spec.B if B is None else B
-        n_worker = len(affinity["workers_cpus"]) if n_worker is None else n_worker
+        B = self.batch_spec.B if B is None else B  # 参考BatchSpec类，可以认为B是environment实例的数量
+        n_worker = len(affinity["workers_cpus"]) if n_worker is None else n_worker  # worker的数量(不超过物理CPU数否则在别处报错)
+        """
+        当environment实例的数量<worker的数量时，例如有8个worker(即8个物理CPU)，5个environment实例，每一个物理CPU运行一个environment，
+        那么此时会有3个物理CPU多余，此时就会把worker的数量设置成和environment实例数量一样，使得每个CPU都刚好运行一个environment实例。
+        """
         if B < n_worker:
             logger.log(f"WARNING: requested fewer envs ({B}) than available worker "
                 f"processes ({n_worker}). Using fewer workers (but maybe better to "
