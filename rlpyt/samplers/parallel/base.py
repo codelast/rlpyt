@@ -40,7 +40,7 @@ class ParallelSamplerBase(BaseSampler):
         self.n_worker = n_worker = len(n_envs_list)  # 经过调整之后的worker数
         B = self.batch_spec.B  # environment实例的数量
         global_B = B * world_size  # "平行宇宙"概念下的environment实例的数量
-        env_ranks = list(range(rank * B, (rank + 1) * B))  # 其含义可参考：https://www.codelast.com/?p=10932
+        env_ranks = list(range(rank * B, (rank + 1) * B))  # 含义可参考：https://www.codelast.com/?p=10932
         self.world_size = world_size
         self.rank = rank
 
@@ -66,17 +66,25 @@ class ParallelSamplerBase(BaseSampler):
         common_kwargs = self._assemble_common_kwargs(affinity, global_B)
         workers_kwargs = self._assemble_workers_kwargs(affinity, seed, n_envs_list)
 
+        # 创建一批子进程
         target = sampling_process if worker_process is None else worker_process
         self.workers = [mp.Process(target=target,
             kwargs=dict(common_kwargs=common_kwargs, worker_kwargs=w_kwargs))
-            for w_kwargs in workers_kwargs]  # 创建一批子进程
+            for w_kwargs in workers_kwargs]
+        # 启动子进程
         for w in self.workers:
-            w.start()  # 启动进程
+            w.start()
 
         self.ctrl.barrier_out.wait()  # Wait for workers ready (e.g. decorrelate).
         return examples  # e.g. In case useful to build replay buffer.
 
     def obtain_samples(self, itr):
+        """
+        采样一批数据。
+
+        :param itr: 第几次迭代。
+        :return: TODO
+        """
         self.ctrl.itr.value = itr
         self.ctrl.barrier_in.wait()
         # Workers step environments and sample actions here.
@@ -85,6 +93,12 @@ class ParallelSamplerBase(BaseSampler):
         return self.samples_pyt, traj_infos
 
     def evaluate_agent(self, itr):
+        """
+        评估模型。
+
+        :param itr: 第几次迭代。
+        :return: trajectory的统计信息。
+        """
         self.ctrl.itr.value = itr
         self.ctrl.do_eval.value = True
         self.sync.stop_eval.value = False
@@ -111,6 +125,9 @@ class ParallelSamplerBase(BaseSampler):
         return traj_infos
 
     def shutdown(self):
+        """
+        结束时的清理工作。
+        """
         self.ctrl.quit.value = True
         self.ctrl.barrier_in.wait()
         for w in self.workers:
@@ -154,6 +171,14 @@ class ParallelSamplerBase(BaseSampler):
         return n_envs_list
 
     def _agent_init(self, agent, env, global_B=1, env_ranks=None):
+        """
+        初始化agent。
+
+        :param agent: agent的一个实例。
+        :param env: environment的一个实例。
+        :param global_B: 含义可参考：https://www.codelast.com/?p=10883 以及 https://www.codelast.com/?p=10932
+        :param env_ranks: 含义可参考：https://www.codelast.com/?p=10932
+        """
         agent.initialize(env.spaces, share_memory=True,
             global_B=global_B, env_ranks=env_ranks)
         self.agent = agent
@@ -187,6 +212,13 @@ class ParallelSamplerBase(BaseSampler):
         self.sync = AttrDict(stop_eval=mp.RawValue(ctypes.c_bool, False))
 
     def _assemble_common_kwargs(self, affinity, global_B=1):
+        """
+        创建对各个worker都相同的通用(common)参数字典。
+
+        :param affinity: 亲和性定义，一个字典(dict)。
+        :param global_B: 含义可参考：https://www.codelast.com/?p=10883 以及 https://www.codelast.com/?p=10932
+        :return: 一个参数字典(dict)。
+        """
         common_kwargs = dict(
             EnvCls=self.EnvCls,
             env_kwargs=self.env_kwargs,
@@ -212,11 +244,21 @@ class ParallelSamplerBase(BaseSampler):
         return common_kwargs
 
     def _assemble_workers_kwargs(self, affinity, seed, n_envs_list):
+        """
+        由于每个worker使用的CPU、承载的environment实例的数量等情况是不相同的，因此它们需要的初始化参数也不同，此函数为每个worker创建不同的
+        参数字典。
+
+        :param affinity: 亲和性定义，一个字典(dict)。
+        :param seed: 种子，一个整数值。
+        :param n_envs_list: 这个list的元素的总数是最终的worker的数量；而这个list里的每个元素的值，分别是每个worker承载的environment
+        实例的数量。
+        :return: 一个参数字典(dict)。
+        """
         workers_kwargs = list()
         i_env = 0
         g_env = sum(n_envs_list) * self.rank
         for rank in range(len(n_envs_list)):
-            n_envs = n_envs_list[rank]
+            n_envs = n_envs_list[rank]  # 当前worker承载的environment实例的数量
             slice_B = slice(i_env, i_env + n_envs)
             env_ranks = list(range(g_env, g_env + n_envs))
             worker_kwargs = dict(
