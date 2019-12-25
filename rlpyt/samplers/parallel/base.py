@@ -36,25 +36,25 @@ class ParallelSamplerBase(BaseSampler):
         """
         initialize()函数在runner类(例如MinibatchRlBase)中会被调用。
         """
-        n_envs_list = self._get_n_envs_list(affinity=affinity)
-        self.n_worker = n_worker = len(n_envs_list)
-        B = self.batch_spec.B
-        global_B = B * world_size
-        env_ranks = list(range(rank * B, (rank + 1) * B))
+        n_envs_list = self._get_n_envs_list(affinity=affinity)  # 用户设置的worker数不一定与environment数相匹配，这里会重新调整
+        self.n_worker = n_worker = len(n_envs_list)  # 经过调整之后的worker数
+        B = self.batch_spec.B  # environment实例的数量
+        global_B = B * world_size  # "平行宇宙"概念下的environment实例的数量
+        env_ranks = list(range(rank * B, (rank + 1) * B))  # 其含义可参考：https://www.codelast.com/?p=10932
         self.world_size = world_size
         self.rank = rank
 
-        if self.eval_n_envs > 0:
-            self.eval_n_envs_per = max(1, self.eval_n_envs // n_worker)
+        if self.eval_n_envs > 0:  # 在example_*.py中传入的参数
+            self.eval_n_envs_per = max(1, self.eval_n_envs // n_worker)  # 计算每个worker至少承载几个evaluation的environment(至少1)
             self.eval_n_envs = eval_n_envs = self.eval_n_envs_per * n_worker  # 保证至少有"worker数量"个eval environment实例
             logger.log(f"Total parallel evaluation envs: {eval_n_envs}.")
             self.eval_max_T = eval_max_T = int(self.eval_max_steps // eval_n_envs)
 
-        env = self.EnvCls(**self.env_kwargs)  # 实例化environment，参数env_kwargs是外部传入父类BaseSampler的
+        env = self.EnvCls(**self.env_kwargs)  # 实例化environment，参数env_kwargs是example_*.py传入父类BaseSampler的
         self._agent_init(agent, env, global_B=global_B,
             env_ranks=env_ranks)
         examples = self._build_buffers(env, bootstrap_value)
-        env.close()
+        env.close()  # 在environment类的父类Env中定义了这个空方法
         del env
 
         self._build_parallel_ctrl(n_worker)
@@ -166,9 +166,13 @@ class ParallelSamplerBase(BaseSampler):
 
     def _build_parallel_ctrl(self, n_worker):
         """
+        创建用于控制并行训练过程的一些数据结构。
+
         multiprocessing.RawValue：不存在lock的多进程间共享值。
         multiprocessing.Barrier：一种简单的同步原语，用于固定数目的进程相互等待。当所有进程都调用wait以后，所有进程会同时开始执行。
         multiprocessing.Queue：用于多进程间数据传递的消息队列。
+
+        :param n_worker: 真正的worker数(不一定等于用户设置的那个原始值)。
         """
         self.ctrl = AttrDict(
             quit=mp.RawValue(ctypes.c_bool, False),
@@ -179,6 +183,7 @@ class ParallelSamplerBase(BaseSampler):
         )
         self.traj_infos_queue = mp.Queue()
         self.eval_traj_infos_queue = mp.Queue()
+        # RawValue(typecode_or_type, *args) 返回从共享内存中分配的ctypes对象，这里为bool类型的对象
         self.sync = AttrDict(stop_eval=mp.RawValue(ctypes.c_bool, False))
 
     def _assemble_common_kwargs(self, affinity, global_B=1):

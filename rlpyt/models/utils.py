@@ -49,6 +49,6 @@ def strip_ddp_state_dict(state_dict):
     # DistributedDataParallel. (Solution from PyTorch forums.)
     clean_state_dict = type(state_dict)()
     for k, v in state_dict.items():
-        key = k[7:] if k[:7] == "module." else k
+        key = k[7:] if k[:7] == "module." else k  # 去掉key里包含的"module."前缀(如果有的话)
         clean_state_dict[key] = v
     return clean_state_dict

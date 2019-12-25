@@ -11,7 +11,13 @@ class CpuSampler(ParallelSamplerBase):
                          eval_CollectorCls=eval_CollectorCls, **kwargs)
 
     def obtain_samples(self, itr):
-        self.agent.sync_shared_memory()  # New weights in workers, if needed.
+        """
+        采样一批数据。
+
+        :param itr: 第几次迭代。
+        :return: TODO
+        """
+        self.agent.sync_shared_memory()  # New weights in workers, if needed. 在并行模式下，采样之前需要先同步共享模型。
         return super().obtain_samples(itr)
 
     def evaluate_agent(self, itr):

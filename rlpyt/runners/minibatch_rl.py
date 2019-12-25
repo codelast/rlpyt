@@ -258,7 +258,7 @@ class MinibatchRl(MinibatchRlBase):
                 self.agent.train_mode(itr)  # 把神经网络module设置成训练模式，传进入的迭代次数其实没用
                 opt_info = self.algo.optimize_agent(itr, samples)  # 训练模型，反向传播之类的工作就是在这里面做的
                 self.store_diagnostics(itr, traj_infos, opt_info)  # 更新内存中的一些统计数据
-                if (itr + 1) % self.log_interval_itrs == 0:
+                if (itr + 1) % self.log_interval_itrs == 0:  # 每迭代到记录一次日志的步数
                     self.log_diagnostics(itr)  # 记录诊断信息(写日志)
         self.shutdown()  # 完成后的清理工作
 
