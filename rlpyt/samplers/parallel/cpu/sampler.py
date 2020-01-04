@@ -15,7 +15,7 @@ class CpuSampler(ParallelSamplerBase):
         采样一批数据。
 
         :param itr: 第几次迭代。
-        :return: TODO
+        :return: 采样得到的数据。
         """
         self.agent.sync_shared_memory()  # New weights in workers, if needed. 在并行模式下，采样之前需要先同步共享模型。
         return super().obtain_samples(itr)
