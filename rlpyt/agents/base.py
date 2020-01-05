@@ -61,7 +61,7 @@ class BaseAgent:
         self.model = self.ModelCls(**self.env_model_kwargs, **self.model_kwargs)  # torch.nn.Module的子类
         if share_memory:
             self.model.share_memory()  # 使得self.model对应的模型参数可以在多进程间共享
-            self.shared_model = self.model
+            self.shared_model = self.model  # 一开始共享模型与每个agent内部的模型完全相同，随着训练的进行，agent内部的模型会被改变
         if self.initial_model_state_dict is not None:
             self.model.load_state_dict(self.initial_model_state_dict)  # 加载模型
         self.env_spaces = env_spaces  # 一个namedtuple，包含observation space 和 action space两个属性
