@@ -101,6 +101,9 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
 
     def update_target(self, tau=1):
         """
-        更新target network，即把main network的参数拷贝到target network上。
+        更新target network，即把main network(self.model)的参数拷贝到target network(self.target_model)上。当τ>0的时候会使用
+        soft update算法来更新参数。
+
+        :param tau: soft update算法里的τ参数。
         """
         update_state_dict(self.target_model, self.model.state_dict(), tau)
