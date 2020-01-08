@@ -33,6 +33,15 @@ scale_grad = ScaleGrad.apply
 
 
 def update_state_dict(model, state_dict, tau=1, strip_ddp=True):
+    """
+    用输入的模型参数(state_dict)，来更新目标模型(model)的参数。当τ>0的时候，使用soft update算法来更新参数，即：θ‘=θ×τ+θ’×(1−τ)，其中θ’
+    是待更新的模型的参数。
+
+    :param model: 待更新的目标模型的参数。
+    :param state_dict: 用于更新目标模型的输入参数。
+    :param tau: soft update算法里的τ参数。
+    :param strip_ddp: 参考strip_ddp_state_dict()函数。
+    """
     if strip_ddp:
         state_dict = strip_ddp_state_dict(state_dict)
     if tau == 1:
