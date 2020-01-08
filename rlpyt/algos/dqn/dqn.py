@@ -144,11 +144,11 @@ class DQN(RlAlgorithm):
             return opt_info
         for _ in range(self.updates_per_optimize):
             samples_from_replay = self.replay_buffer.sample_batch(self.batch_size)
-            self.optimizer.zero_grad()
+            self.optimizer.zero_grad()  # 将所有参数的梯度都置零
             loss, td_abs_errors = self.loss(samples_from_replay)
-            loss.backward()
+            loss.backward()  # 误差反向传播计算参数梯度
             grad_norm = torch.nn.utils.clip_grad_norm_(self.agent.parameters(), self.clip_grad_norm)
-            self.optimizer.step()
+            self.optimizer.step()  # 通过梯度做一步参数更新
             if self.prioritized_replay:
                 self.replay_buffer.update_batch_priorities(td_abs_errors)
             opt_info.loss.append(loss.item())
