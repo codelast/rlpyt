@@ -55,9 +55,9 @@ class DqnAgent(EpsilonGreedyAgentMixin, BaseAgent):
 
     def state_dict(self):
         """
-        返回两个网络的state数据。例如网络的weight，bias等。
+        返回main network和target network两个网络的state数据。例如网络的weight，bias等。
 
-        :return: 一个dict
+        :return: 一个dict。
         """
         return dict(model=self.model.state_dict(), target=self.target_model.state_dict())
 
