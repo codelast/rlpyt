@@ -75,16 +75,23 @@ def numpify_buffer(buffer_):
 
 
 def buffer_to(buffer_, device=None):
+    """
+    把buffer数据挪到指定的设备(CPU/GPU)上。
+
+    :param buffer_: 输入数据。
+    :param device: 目标设备。
+    :return: 与输入数据相同类型的对象，只不过它是被放在指定的device上。例如，输入的是Tensor，则输出的也是Tensor(目标设备上)。
+    """
     if buffer_ is None:
         return
     if isinstance(buffer_, torch.Tensor):
         return buffer_.to(device)
-    elif isinstance(buffer_, np.ndarray):
+    elif isinstance(buffer_, np.ndarray):  # 不允许把NumPy array挪到指定的设备上
         raise TypeError("Cannot move numpy array to device.")
-    contents = tuple(buffer_to(b, device=device) for b in buffer_)
+    contents = tuple(buffer_to(b, device=device) for b in buffer_)  # 输入数据是可迭代的类型，则依次处理里面每一个元素并组合成tuple
     if type(buffer_) is tuple:
         return contents
-    return type(buffer_)(*contents)
+    return type(buffer_)(*contents)  # 输入数据不是Tensor也不是tuple，则处理后再转换成同类型返回
 
 
 def buffer_method(buffer_, method_name, *args, **kwargs):
