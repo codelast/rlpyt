@@ -245,8 +245,8 @@ class ParallelSamplerBase(BaseSampler):
 
     def _assemble_workers_kwargs(self, affinity, seed, n_envs_list):
         """
-        由于每个worker使用的CPU、承载的environment实例的数量等情况是不相同的，因此它们需要的初始化参数也不同，此函数为每个worker创建不同的
-        参数字典。
+        由于每个worker使用的CPU数量、承载的environment实例的数量等情况是不相同的，因此它们需要的初始化参数也不同，此函数为每个worker创建
+        不同的参数字典。
 
         :param affinity: 亲和性定义，一个字典(dict)。
         :param seed: 种子，一个整数值。
