@@ -201,12 +201,12 @@ class ParallelSamplerBase(BaseSampler):
         """
         self.ctrl = AttrDict(
             quit=mp.RawValue(ctypes.c_bool, False),
-            barrier_in=mp.Barrier(n_worker + 1),
+            barrier_in=mp.Barrier(n_worker + 1),  # 需要有n_worker+1个wait()被调用，所有multiprocessing启动的进程才会"解锁"
             barrier_out=mp.Barrier(n_worker + 1),
             do_eval=mp.RawValue(ctypes.c_bool, False),
             itr=mp.RawValue(ctypes.c_long, 0),
         )
-        self.traj_infos_queue = mp.Queue()
+        self.traj_infos_queue = mp.Queue()  # 多进程间共享的队列
         self.eval_traj_infos_queue = mp.Queue()
         # RawValue(typecode_or_type, *args) 返回从共享内存中分配的ctypes对象，这里为bool类型的对象
         self.sync = AttrDict(stop_eval=mp.RawValue(ctypes.c_bool, False))
