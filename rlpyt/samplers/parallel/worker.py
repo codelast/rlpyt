@@ -15,7 +15,7 @@ def initialize_worker(rank, seed=None, cpu=None, torch_threads=None):
     :param rank: 采样进程的标识序号。
     :param seed: 种子，一个整数值。
     :param cpu: CPU序号，例如 0, 1, 2 等等。
-    :param torch_threads: CPU并发执行的线程数
+    :param torch_threads: CPU并发执行的线程数。
     """
     log_str = f"Sampler rank {rank} initialized"
     cpu = [cpu] if isinstance(cpu, int) else cpu
